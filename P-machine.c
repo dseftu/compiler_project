@@ -80,9 +80,45 @@ int main()
 
 void readInput(string filename)
 {
+    // opens the file
+
+    // while data still exists, continue to read
+
+    // reads in 4 ints (which contitutes an instruction)
+
+    // loads into next instruction
+
+    // fill the rest of the instruction array will blanks    
+}
+
+// prints the instruction using the following format:
+// Line OP  R   L   M
+// eg.
+// 13   sto 0   0   5
+// optional bool newline dictates whether or not to
+// print a newline char or not.
+void printInstruction(instruction ins, bool newline)
+{
 
 }
 
+// prints out the program in intrepreted assembly language with line numbers
+void printCode()
+{
+
+}
+
+// prints the current program data
+void printStack()
+{
+
+}
+
+// initializes the stack to all zeros
+void initStack()
+{
+    
+}
 // Code provided by the problem statement:
 // Find base L levels down
 int base(l, base)
