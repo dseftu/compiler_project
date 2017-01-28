@@ -79,14 +79,18 @@ int registers[MAX_REGISTERS];
 
 int halt = 0;
 
-int main()
+int main(int argc, char *argv[])
 {
-    
+    // TODO, validate input
+
+    readInput(argv[1]);
+
     return 0;
 }
 
-void readInput(string filename)
+void readInput(char *filename)
 {
+    printf("%s\n", *filename);
     // opens the file
 
     // while data still exists, continue to read
