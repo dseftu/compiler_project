@@ -60,8 +60,6 @@
 #define GTR 23
 #define GEQ 24
 
-#define HALTED -1
-
 typedef struct instruction
 {
     int op; // opcode
@@ -74,22 +72,25 @@ typedef struct instruction
 int BP = 1;
 int SP = 0;
 int PC = 0;
-int IR = 0;
+instruction IR;
+
+// where to set the activation record lines when printing
+int AR[MAX_LEXI_LEVELS];
+int ARDepth = -1;
 
 instruction code[MAX_CODE_LENGTH];
 int ENDOFCODE = 0;
 int stack[MAX_STACK_HEIGHT];
 int registers[MAX_REGISTERS];
 
-int halt = 0;
+int halt = FALSE;
 
 void readInput(char *filename);
 void printInstruction(instruction ins, int newline);
 char* opcodeToString(int op);
-void printCode();
 void printStack();
 void initStack();
-void ALU(instruction* ins);
+void ALU();
 void fetch();
 void execute();
 int base(int l, int base);
@@ -99,7 +100,41 @@ int main(int argc, char *argv[])
     // TODO, validate input
 
     readInput(argv[1]);
-    if (halt == HALTED) return 0;
+
+    // init the instruction register
+    IR.op = 0;
+    IR.r = 0;
+    IR.l = 0;
+    IR.m = 0;
+
+    // init the activation record lines
+    // these will be used to check to see if we should print a line or not when
+    // printing the stack
+    int i = 0;
+    for (i = 0; i < MAX_LEXI_LEVELS; i++)
+        AR[i] = -1;
+
+    // init the stack to all zeros
+    initStack();
+    
+    // start the main execution loop
+    while (halt == FALSE)
+    {
+        // get the next instruction
+        fetch();
+
+        // check for halted condition in case fetch failed
+        if (halt == TRUE) break;
+
+        // print the current program counter
+        printf("%d\t", PC);
+
+        // execute the next instruction
+        execute();
+
+        // print the current stack, including instruction register
+        printStack();
+    }
 
     return 0;
 }
@@ -115,7 +150,7 @@ void readInput(char *filename)
     {
         // can't open file
         printf("Unable to open file!");
-        halt = HALTED;
+        halt = TRUE;
     }
     else
     {
@@ -129,6 +164,7 @@ void readInput(char *filename)
             code[i].l = l;
             code[i].m = m;
 
+            printf("%d\t",i);
             printInstruction(code[i],TRUE);
             // advance the counter
             i++;
@@ -163,7 +199,7 @@ void readInput(char *filename)
 // print a newline char or not.
 void printInstruction(instruction ins, int newline)
 {
-    printf("%d\t%s\t%d\t%d\t%d", ins.op, opcodeToString(ins.op), ins.r, ins.l, ins.m);
+    printf("%s\t%d\t%d\t%d", opcodeToString(ins.op), ins.r, ins.l, ins.m);
 
     if (newline == TRUE) printf("\n");
 }
@@ -188,9 +224,9 @@ char* opcodeToString(int op)
             return "jmp";
         case JPC:
             return "jpc";
-        case SIO_I:
-            return "sio";
         case SIO_O:
+            return "sio";
+        case SIO_I:
             return "sio";
         case SIO_E:
             return "sio";
@@ -222,31 +258,47 @@ char* opcodeToString(int op)
             return "geq";
         default:
             printf("unexpected opcode!");
-            halt = HALTED;
+            halt = TRUE;
             return "";
     }
-}
-
-// prints out the program in intrepreted assembly language with line numbers
-void printCode()
-{
-
+    return "";
 }
 
 // prints the current program data
 void printStack()
 {
+    // print the instruction register
+    printInstruction(IR, FALSE);
+
+    // print the PC, BP, and SP
+    printf("\t%d\t%d\t%d", PC, BP, SP);
+
+    // iterate through the stack up to SP
+    int i, c;
+    for (i = 0; i < SP; i++)
+    {
+        // see if we need to print a break
+        for (c = 0; c < ARDepth; c++)
+            if (AR[c] == i) printf("\t|\t");
+        
+        printf("\t%d", stack[i]);
+    }
+
+    printf("\n");
 
 }
 
 // initializes the stack to all zeros
 void initStack()
 {
+    int i;
+    for (i = 0; i < MAX_STACK_HEIGHT; i++)
+        stack[i] = 0;
     
 }
 
 // performs artithmatic and logical instrutions
-void ALU(instruction* ins)
+void ALU()
 {
 
 }
@@ -255,15 +307,63 @@ void ALU(instruction* ins)
 // it into the instruction register
 // increments program counter by 1
 void fetch()
-{
-
+{    
+    IR = code[PC++];
 }
 
 // executes the instruciton that is in
 // in instruction register
 void execute()
 {
-    
+    switch (IR.op)
+    {
+        // i == R, j == L, k == M
+        case LIT: // load immiediate into register
+            registers[IR.r] = IR.m;
+            break;
+        case RTN: // returns from calling method
+            SP = BP -1;
+            BP = stack[SP+3];
+            PC = stack[SP+4];
+            break;
+        case LOD: // loads into register from stack
+            registers[IR.r] = stack[base(IR.l, BP) + IR.m];
+            break;
+        case STO: // stores from register into stack
+            stack[base(IR.l,BP) + IR.m] = registers[IR.r];
+            break;
+        case CAL:   // calls procedure
+            stack[SP+1] = 0;
+            stack[SP+2] = base(IR.l, BP);
+            stack[SP+3] = BP;
+            stack[SP+4] = PC;
+            BP = SP + 1;
+            PC = IR.m;
+            break;
+        case INC:   // allocates M locals
+            SP = SP + IR.m;
+            break;
+        case JMP:   // jump to instruction
+            PC = IR.m;
+            break;
+        case JPC:   // conditional jump
+            if (registers[IR.r] == 0)
+                PC = IR.m;
+            break;
+        case SIO_O: // writes the register to the screen
+            printf("%d\n", registers[IR.r]);
+            break;
+        case SIO_I: // reads input to register
+            scanf("%d", &registers[IR.r]);
+            printf("\n");
+            break;
+        case SIO_E: // End of program
+            halt = TRUE;
+            break;
+        default: // any other opcode is an ALU code
+            ALU();
+    }
+
 }
 
 // Code provided by the problem statement:
