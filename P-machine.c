@@ -17,6 +17,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define TRUE 1
+#define FALSE 0
+
 #define MAX_STACK_HEIGHT 2000
 #define MAX_CODE_LENGTH 500
 #define MAX_LEXI_LEVELS 3
@@ -73,44 +76,155 @@ int SP = 0;
 int PC = 0;
 int IR = 0;
 
-int instruction[MAX_CODE_LENGTH];
+instruction code[MAX_CODE_LENGTH];
+int ENDOFCODE = 0;
 int stack[MAX_STACK_HEIGHT];
 int registers[MAX_REGISTERS];
 
 int halt = 0;
+
+void readInput(char *filename);
+void printInstruction(instruction ins, int newline);
+char* opcodeToString(int op);
+void printCode();
+void printStack();
+void initStack();
+void ALU(instruction* ins);
+void fetch();
+void execute();
+int base(int l, int base);
 
 int main(int argc, char *argv[])
 {
     // TODO, validate input
 
     readInput(argv[1]);
+    if (halt == HALTED) return 0;
 
     return 0;
 }
 
 void readInput(char *filename)
-{
-    printf("%s\n", *filename);
+{    
     // opens the file
+    FILE *fid;
 
-    // while data still exists, continue to read
+    fid = fopen(filename, "r");
 
-    // reads in 4 ints (which contitutes an instruction)
+    if (fid == NULL)
+    {
+        // can't open file
+        printf("Unable to open file!");
+        halt = HALTED;
+    }
+    else
+    {
+        int i = 0;
+        int opcode, r, l, m;
 
-    // loads into next instruction
+        while (i < MAX_CODE_LENGTH && fscanf(fid, "%d %d %d %d", &opcode, &r, &l, &m) == 4)
+        {
+            code[i].op = opcode;
+            code[i].r = r;
+            code[i].l = l;
+            code[i].m = m;
 
-    // fill the rest of the instruction array will blanks    
+            printInstruction(code[i],TRUE);
+            // advance the counter
+            i++;
+
+            // set the end of code to this new spot.
+            ENDOFCODE = i;
+        }
+
+        // clear rest of code
+        while (i < MAX_CODE_LENGTH)
+        {
+            // setting any other instructions past the end of the code file to
+            // halt statements.
+            code[i].op = 11;
+            code[i].r = 0;
+            code[i].l = 0;
+            code[i].m = 2;
+
+            // advance the counter
+            i++;
+        }
+
+        fclose(fid);
+    }
 }
 
 // prints the instruction using the following format:
 // Line OP  R   L   M
 // eg.
 // 13   sto 0   0   5
-// optional bool newline dictates whether or not to
+// optional int newline dictates whether or not to
 // print a newline char or not.
-void printInstruction(instruction ins, bool newline)
+void printInstruction(instruction ins, int newline)
 {
+    printf("%d\t%s\t%d\t%d\t%d", ins.op, opcodeToString(ins.op), ins.r, ins.l, ins.m);
 
+    if (newline == TRUE) printf("\n");
+}
+
+char* opcodeToString(int op)
+{
+    switch (op)
+    {
+        case LIT:
+            return "lit";
+        case RTN:
+            return "rtn";
+        case LOD:
+            return "lod";
+        case STO:
+            return "sto";
+        case CAL:
+            return "cal";
+        case INC:
+            return "inc";
+        case JMP:
+            return "jmp";
+        case JPC:
+            return "jpc";
+        case SIO_I:
+            return "sio";
+        case SIO_O:
+            return "sio";
+        case SIO_E:
+            return "sio";
+        case NEG:
+            return "neg";
+        case ADD:
+            return "add";
+        case SUB:
+            return "sub";
+        case MUL:
+            return "mul";
+        case DIV:
+            return "div";
+        case ODD:
+            return "odd";
+        case MOD:
+            return "mod";
+        case EQL:
+            return "eql";
+        case NEQ:
+            return "neq";
+        case LSS:
+            return "lss";
+        case LEQ:
+            return "leq";
+        case GTR:
+            return "gtr";
+        case GEQ:
+            return "geq";
+        default:
+            printf("unexpected opcode!");
+            halt = HALTED;
+            return "";
+    }
 }
 
 // prints out the program in intrepreted assembly language with line numbers
@@ -132,7 +246,7 @@ void initStack()
 }
 
 // performs artithmatic and logical instrutions
-void ALU(instruction ins)
+void ALU(instruction* ins)
 {
 
 }
@@ -154,7 +268,7 @@ void execute()
 
 // Code provided by the problem statement:
 // Find base L levels down
-int base(l, base)
+int base(int l, int base)
 {
     int b1;
     b1 = base;
