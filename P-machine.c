@@ -81,7 +81,7 @@ int ARDepth = -1;
 instruction code[MAX_CODE_LENGTH];
 int ENDOFCODE = 0;
 int stack[MAX_STACK_HEIGHT];
-int registers[MAX_REGISTERS];
+int R[MAX_REGISTERS];
 
 int halt = FALSE;
 
@@ -117,8 +117,10 @@ int main(int argc, char *argv[])
     // init the stack to all zeros
     initStack();
     
+    printf("\nInitial Values\t\t\t\tPC\tBP\tSP\n");
+
     // start the main execution loop
-    while (halt == FALSE)
+    while (halt == FALSE && BP != 0)
     {
         // get the next instruction
         fetch();
@@ -126,13 +128,14 @@ int main(int argc, char *argv[])
         // check for halted condition in case fetch failed
         if (halt == TRUE) break;
 
-        // print the current program counter
-        printf("%d\t", PC);
+        // save the PC to print after execution
+        int tempPC = PC;
 
         // execute the next instruction
         execute();
 
         // print the current stack, including instruction register
+        printf("%d\t", tempPC);
         printStack();
     }
 
@@ -156,6 +159,8 @@ void readInput(char *filename)
     {
         int i = 0;
         int opcode, r, l, m;
+
+        printf("Line\tOP\tR\tL\tM\n");
 
         while (i < MAX_CODE_LENGTH && fscanf(fid, "%d %d %d %d", &opcode, &r, &l, &m) == 4)
         {
@@ -275,11 +280,11 @@ void printStack()
 
     // iterate through the stack up to SP
     int i, c;
-    for (i = 0; i < SP; i++)
+    for (i = 0; i <= SP; i++)
     {
         // see if we need to print a break
         for (c = 0; c < ARDepth; c++)
-            if (AR[c] == i) printf("\t|\t");
+            if (AR[c] == i) printf(" | ");
         
         printf("\t%d", stack[i]);
     }
@@ -300,7 +305,53 @@ void initStack()
 // performs artithmatic and logical instrutions
 void ALU()
 {
-
+    switch (IR.op)
+    {
+        // i == R, j == L, k == M
+        case NEG:
+            R[IR.r] = -R[IR.r];
+            break;
+        case ADD:
+            R[IR.r] = R[IR.l] + R[IR.m];
+            break;
+        case SUB:
+            R[IR.r] = R[IR.l] - R[IR.m];
+            break;
+        case MUL:
+            R[IR.r] = R[IR.l] * R[IR.m];
+            break;
+        case DIV:
+            R[IR.r] = R[IR.l] / R[IR.m];
+            break;
+        case ODD:
+            R[IR.r] = R[IR.l] % 2;
+            break;
+        case MOD:
+            R[IR.r] = R[IR.l] % R[IR.m];
+            break;
+        case EQL:
+            R[IR.r] = R[IR.l] == R[IR.m];
+            break;
+        case NEQ:
+            R[IR.r] = R[IR.l] != R[IR.m];
+            break;
+        case LSS:
+            R[IR.r] = R[IR.l] < R[IR.m];
+            break;
+        case LEQ:
+            R[IR.r] = R[IR.l] <= R[IR.m];
+            break;
+        case GTR:
+            R[IR.r] = R[IR.l] > R[IR.m];
+            break;
+        case GEQ:
+            R[IR.r] = R[IR.l] >= R[IR.m];
+            break;
+        default:
+            printf("unexpected opcode of %d!", IR.op);
+            halt = TRUE;
+            return "";
+    }
 }
 
 // fetchs the next instruction and places
@@ -317,9 +368,8 @@ void execute()
 {
     switch (IR.op)
     {
-        // i == R, j == L, k == M
         case LIT: // load immiediate into register
-            registers[IR.r] = IR.m;
+            R[IR.r] = IR.m;
             break;
         case RTN: // returns from calling method
             SP = BP -1;
@@ -327,10 +377,10 @@ void execute()
             PC = stack[SP+4];
             break;
         case LOD: // loads into register from stack
-            registers[IR.r] = stack[base(IR.l, BP) + IR.m];
+            R[IR.r] = stack[base(IR.l, BP) + IR.m];
             break;
         case STO: // stores from register into stack
-            stack[base(IR.l,BP) + IR.m] = registers[IR.r];
+            stack[base(IR.l,BP) + IR.m] = R[IR.r];
             break;
         case CAL:   // calls procedure
             stack[SP+1] = 0;
@@ -347,14 +397,14 @@ void execute()
             PC = IR.m;
             break;
         case JPC:   // conditional jump
-            if (registers[IR.r] == 0)
+            if (R[IR.r] == 0)
                 PC = IR.m;
             break;
         case SIO_O: // writes the register to the screen
-            printf("%d\n", registers[IR.r]);
+            printf("%d\n", R[IR.r]);
             break;
         case SIO_I: // reads input to register
-            scanf("%d", &registers[IR.r]);
+            scanf("%d", &R[IR.r]);
             printf("\n");
             break;
         case SIO_E: // End of program
