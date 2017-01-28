@@ -79,7 +79,6 @@ int AR[MAX_LEXI_LEVELS];
 int ARDepth = -1;
 
 instruction code[MAX_CODE_LENGTH];
-int ENDOFCODE = 0;
 int stack[MAX_STACK_HEIGHT];
 int R[MAX_REGISTERS];
 
@@ -174,8 +173,6 @@ void readInput(char *filename)
             // advance the counter
             i++;
 
-            // set the end of code to this new spot.
-            ENDOFCODE = i;
         }
 
         // clear rest of code
@@ -283,8 +280,8 @@ void printStack()
     for (i = 0; i <= SP; i++)
     {
         // see if we need to print a break
-        for (c = 0; c < ARDepth; c++)
-            if (AR[c] == i) printf(" | ");
+        for (c = 0; c <= ARDepth; c++)
+            if (AR[c] == i-1) printf("\t|");
         
         printf("\t%d", stack[i]);
     }
@@ -372,6 +369,8 @@ void execute()
             R[IR.r] = IR.m;
             break;
         case RTN: // returns from calling method
+            AR[ARDepth] = -1;
+            ARDepth--;
             SP = BP -1;
             BP = stack[SP+3];
             PC = stack[SP+4];
@@ -383,6 +382,8 @@ void execute()
             stack[base(IR.l,BP) + IR.m] = R[IR.r];
             break;
         case CAL:   // calls procedure
+            ARDepth++;
+            AR[ARDepth] = SP;
             stack[SP+1] = 0;
             stack[SP+2] = base(IR.l, BP);
             stack[SP+3] = BP;
