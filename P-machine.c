@@ -12,6 +12,9 @@
 // SP, the stack pointer
 // PC, the program counter
 // IR, the instruciton register
+//
+// In addition, there will be 16 registers for the
+// program to store and write data to.
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,7 +28,7 @@
 #define MAX_LEXI_LEVELS 3
 #define MAX_REGISTERS 16
 
-// available instructions
+// Basic instructions
 #define LIT 1
 #define RTN 2
 #define LOD 3
@@ -60,6 +63,7 @@
 #define GTR 23
 #define GEQ 24
 
+// Handy dandy instruction struct
 typedef struct instruction
 {
     int op; // opcode
@@ -75,28 +79,53 @@ int PC = 0;
 instruction IR;
 
 // where to set the activation record lines when printing
+// this is purely for displaying stack traces
 int AR[MAX_LEXI_LEVELS];
 int ARDepth = -1;
 
+// memory stores for code, the stack, and registers
 instruction code[MAX_CODE_LENGTH];
 int stack[MAX_STACK_HEIGHT];
 int R[MAX_REGISTERS];
 
+// the halt flag.  When set to TRUE, the program ends
 int halt = FALSE;
 
+// reads in input from user
 void readInput(char *filename);
+
+// prints the instruction ins.  if newline == TRUE, it prints
+// a newline char afterwards.
 void printInstruction(instruction ins, int newline);
+
+// converts opcodes to human readable string
 char* opcodeToString(int op);
+
+// prints the current stack
 void printStack();
+
+// initializes the stack to zeros
 void initStack();
+
+// performs the arthimatic/logical operations
 void ALU();
+
+// retrieves the next instruction and loads it into the instruction register
 void fetch();
+
+// executes the instruction in the instruction register
 void execute();
+
+// used to find a variable in a different activation record
 int base(int l, int base);
 
 int main(int argc, char *argv[])
 {
-    // TODO, validate input
+    if (argc != 2)
+    {
+        printf("Invalid number of arguments given.\n\nExpected:\nP-machine <input file>\n");
+        return 0;
+    }
 
     readInput(argv[1]);
 
