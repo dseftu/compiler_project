@@ -20,6 +20,7 @@
 #define MAX_STACK_HEIGHT 2000
 #define MAX_CODE_LENGTH 500
 #define MAX_LEXI_LEVELS 3
+#define MAX_REGISTERS 16
 
 // available instructions
 #define LIT 1
@@ -56,6 +57,8 @@
 #define GTR 23
 #define GEQ 24
 
+#define HALTED -1
+
 typedef struct instruction
 {
     int op; // opcode
@@ -72,9 +75,13 @@ int IR = 0;
 
 int instruction[MAX_CODE_LENGTH];
 int stack[MAX_STACK_HEIGHT];
+int registers[MAX_REGISTERS];
+
+int halt = 0;
 
 int main()
 {
+    
     return 0;
 }
 
@@ -119,6 +126,28 @@ void initStack()
 {
     
 }
+
+// performs artithmatic and logical instrutions
+void ALU(instruction ins)
+{
+
+}
+
+// fetchs the next instruction and places
+// it into the instruction register
+// increments program counter by 1
+void fetch()
+{
+
+}
+
+// executes the instruciton that is in
+// in instruction register
+void execute()
+{
+    
+}
+
 // Code provided by the problem statement:
 // Find base L levels down
 int base(l, base)
