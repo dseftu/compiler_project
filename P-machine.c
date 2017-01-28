@@ -127,7 +127,9 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    // read in the input file
     readInput(argv[1]);
+    if (halt == TRUE) return 0;
 
     // init the instruction register
     IR.op = 0;
@@ -376,7 +378,7 @@ void ALU()
         default:
             printf("unexpected opcode of %d!", IR.op);
             halt = TRUE;
-            return "";
+            return;
     }
 }
 
