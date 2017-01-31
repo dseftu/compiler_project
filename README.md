@@ -2,6 +2,10 @@
 David M Allen
 Compiler Project for COP 3402 Systems Software
 
+Input file specifications:
+
+Text file containing 4 integers per line.
+
 Compilation instructions:
 
 from the eustis server prompt:
