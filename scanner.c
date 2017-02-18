@@ -62,9 +62,6 @@ char *word [ ] = {  "null", "begin", "call", "const", "do", "else", "end", "if",
 int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym,
                           oddsym, procsym, readsym, thensym, varsym, whilesym, writesym};
 
-/* list of special symbols */
-int ssym[256];
-
 /*** structure of the symbol table record ***/
 typedef struct  
 { 
@@ -80,8 +77,9 @@ int symbol_table_index = 0;
 
 int isSpecialSymbols(char c);
 void readInput(char *filename);
-void readInputBetterer(char *filename);
-char peekc(FILE *fid);
+char peekC(FILE *fid);
+int addNewSymbol(int kind, char* name, int val, int level, int adr);
+void handleSpecialSymbolPair(char* word, FILE*fid);
 
 int main(int argc, char *argv[])
 {
@@ -92,9 +90,10 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-
     // read in the input file
     readInputBetterer(argv[1]);
+
+    printf("found %d symbols\n", symbol_table_index);
 
     return 0;
 }
@@ -126,544 +125,107 @@ int isInvisible(char c)
 {
     if (c == ' ' ||
         c == '\r'||
-        c == '\n')
+        c == '\n'||
+        c == '\t')
         return TRUE;
     return FALSE;
 }
-char peekc(FILE *fid)
+
+// is word is a reserved word, this attempts to add it to the symbol table.
+// returns true if the word was a reserved word.  Sets halt to true
+// if the add fails.
+int isReservedWord(char* word)
+{
+    int currentSym = -1;
+
+    if (strcmp(word, "const") == 0) currentSym = constsym;
+    else if (strcmp(word, "var") == 0) currentSym = varsym;
+    else if (strcmp(word, "proecedure") == 0) currentSym = procsym;
+    else if (strcmp(word, "call") == 0) currentSym = callsym;
+    else if (strcmp(word, "begin") == 0) currentSym = beginsym;
+    else if (strcmp(word, "end") == 0) currentSym = endsym;
+    else if (strcmp(word, "if") == 0) currentSym = ifsym;
+    else if (strcmp(word, "then") == 0) currentSym = thensym;
+    else if (strcmp(word, "else") == 0) currentSym = elsesym;
+    else if (strcmp(word, "while") == 0) currentSym = whilesym;
+    else if (strcmp(word, "do") == 0) currentSym = dosym;
+    else if (strcmp(word, "read") == 0) currentSym = readsym;
+    else if (strcmp(word, "write") == 0) currentSym = writesym;
+
+    // if we matched, currentSym != -1
+    if (currentSym != -1)
+    {
+        halt = !addNewSymbol(currentSym, word, 0, 0, 0);
+        return TRUE;
+    }
+
+    return FALSE;
+
+
+}
+
+char peekC(FILE *fid)
 {
     int nextC = getc(fid);
     ungetc(nextC, fid);
     return (char)nextC;
 }
 
-// reads in the pl0 file and loads the Lexeme Table.
-// Processing will occur as it reads in the file.
-void readInput(char *filename)
+void handleSpecialSymbolPair(char* word, FILE*fid)
 {
-    // opens the file
-    FILE *fid;
-
-    fid = fopen(filename, "r");
-
-    if (fid == NULL)
+    // see if the next char is a special symbol because that is right out
+    char nextC = peekC(fid);
+    if (isSpecialSymbols(nextC))
     {
-        // can't open file
-        printf("Unable to open file!");
         halt = TRUE;
         return;
     }
+
+    int currentSym = -1;
+
+    if (strcmp(word, "<=") == 0) currentSym = leqsym;
+    else if (strcmp(word, "<>") == 0) currentSym = neqsym;
+    else if (strcmp(word, ">=") == 0) currentSym = geqsym;
+    else if (strcmp(word, ":=") == 0) currentSym = becomessym;
+
+    if (currentSym != -1)
+    {
+        halt = !addNewSymbol(currentSym, word, 0, 0, 0);
+        return;
+    }
+
+    if (strcmp(word, "/*") == 0)
+    {
+        // handle comment string
+        
+        int lastC = getc(fid);
+        if (lastC == EOF) return; // unexpected end, but who cares
+        putchar(lastC);
+
+        int commentsEnded = FALSE;
+        while (!commentsEnded && !halt)
+        {
+            int c = getc(fid);
+            if (c == EOF) return; // unexpected end, but who cares
+            putchar(c);
+
+            if ((char)lastC == '*' && (char)c == '/') commentsEnded = TRUE;
+            else lastC = c;
+        }
+
+    }
     else
     {
-        // print header
-        printf("Source Program:\n");
-
-        char nextWord[MAX_IDENTIFIER_LENGTH];
-        nextWord[0] = '\0';
-        int i = 0;
-        int c = getc(fid);
-        int stillReading = TRUE;
-        while (halt == FALSE && stillReading == TRUE)
-        {
-            char ch = (char)c;
-            if (c == EOF) 
-            {
-                stillReading = FALSE;
-            }
-            else
-            {
-                // display this char and ready the next one
-                putchar(c);
-                c = getc(fid);
-            }
-
-            // check to see if the symbol is a special symbol
-            if (isSpecialSymbols(c))
-            {
-                // special symbol handling
-                if (ch == ';')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid))) halt == true;
-
-                    namerecord_t newRec;
-                    newRec.kind = semicolonsym;
-                    newRec.name[0] = ';';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == ',')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid))) halt == true;
-                    
-                    namerecord_t newRec;
-                    newRec.kind = commasym;
-                    newRec.name[0] = ',';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == '+')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid))) halt == true;
-                    
-                    namerecord_t newRec;
-                    newRec.kind = plussym;
-                    newRec.name[0] = '+';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == '-')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid))) halt == true;
-                    
-                    namerecord_t newRec;
-                    newRec.kind = minussym;
-                    newRec.name[0] = '-';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == '*')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid))) halt == true;
-                    
-                    namerecord_t newRec;
-                    newRec.kind = multsym;
-                    newRec.name[0] = '*';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == '(')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid))) halt == true;
-                    
-                    namerecord_t newRec;
-                    newRec.kind = lparentsym;
-                    newRec.name[0] = '(';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == ')')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid)) && peekC(fid) != ';') halt == true;
-                    
-                    namerecord_t newRec;
-                    newRec.kind = rparentsym;
-                    newRec.name[0] = ')';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == '=')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid))) halt == true;
-                    
-                    namerecord_t newRec;
-                    newRec.kind = eqlsym;
-                    newRec.name[0] = '=';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == '.')
-                {
-                    // halt if next symbol is another special symbol
-                    if (isSpecialSymbols(peekC(fid))) halt == true;
-                    
-                    namerecord_t newRec;
-                    newRec.kind = periodsym;
-                    newRec.name[0] = '.';
-                    newRec.name[1] = '\0';
-                    newRec.val = 0;
-                    newRec.level = 0;
-                    newRec.adr = 0;
-
-                    symbol_table[symbol_table_index++] = newRec;
-                }
-                else if (ch == '<')
-                {   
-                    // check to see if next symbol is '>, ='
-                    int tempC = getc(fid);
-                    if ((char)tempC == '>' || (char)tempC == '=')
-                    {
-                        // print it out and prep for the next iteration
-                        putchar(c);
-                        c = tempC;
-
-                        // halt if next symbol is another special symbol
-                        if (isSpecialSymbols(peekC(fid))) halt == true;
-    
-                        // if it was neqsym
-                        if ((char)tempC == '>')
-                        {
-                            namerecord_t newRec;
-                            newRec.kind = neqsym;
-                            newRec.name[0] = '<';
-                            newRec.name[1] = '>';
-                            newRec.name[2] = '\0';
-                            newRec.val = 0;
-                            newRec.level = 0;
-                            newRec.adr = 0;
-
-                            symbol_table[symbol_table_index++] = newRec;
-
-                        }
-                        else
-                        {
-                            namerecord_t newRec;
-                            newRec.kind = leqsym;
-                            newRec.name[0] = '<';
-                            newRec.name[1] = '=';
-                            newRec.name[2] = '\0';
-                            newRec.val = 0;
-                            newRec.level = 0;
-                            newRec.adr = 0;
-
-                            symbol_table[symbol_table_index++] = newRec;
-                        }
-                    }
-                    else
-                    {
-                        // halt if next symbol is another special symbol
-                        if (isSpecialSymbols(peekC(fid))) halt == true;
-
-                        ungetc(tempC, fid);
-                        namerecord_t newRec;
-                        newRec.kind = lessym;
-                        newRec.name[0] = '<';
-                        newRec.name[1] = '\0';
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                }
-                else if (ch == '>')
-                {
-                    // check to see if next symbol is '='
-                    int tempC = getc(fid);
-                    if ((char)tempC == '=')
-                    {
-                        // print it out and prep for the next iteration
-                        putchar(c);
-                        c = tempC;
-
-                        // halt if next symbol is another special symbol
-                        if (isSpecialSymbols(peekC(fid))) halt == true;
-
-                        namerecord_t newRec;
-                        newRec.kind = geqsym;
-                        newRec.name[0] = '>';
-                        newRec.name[1] = '=';
-                        newRec.name[2] = '\0';
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else
-                    {
-                        ungetc(tempC, fid);
-                        namerecord_t newRec;
-                        newRec.kind = gtrsym;
-                        newRec.name[0] = ',';
-                        newRec.name[1] = '\0';
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                }                
-                else if (ch == ':')
-                {
-                    // check to see if next symbol is '='
-                    int tempC = getc(fid);
-                    if ((char)tempC == '=')
-                    {
-                        // print it out and prep for the next iteration
-                        putchar(c);
-                        c = tempC;
-
-                        namerecord_t newRec;
-                        newRec.kind = becomessym;
-                        newRec.name[0] = ':';
-                        newRec.name[1] = '=';
-                        newRec.name[2] = '\0';
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else
-                    {
-                        // invalid symbol
-                        halt = TRUE;
-                    }
-                }
-                else if (ch == '/')
-                {
-                    int nextC = getc(fid);
-                    // see if we are at the end
-                    if (nextC == EOF) stillReading = FALSE;
-                    else
-                    {
-                        // put it back so we can play nice later
-                        char nextCh = (char)nextC;
-                        ungetc(nextC, fid);
-
-                        // this means we are in a comment thread.
-                        if (nextCh == '*')
-                        {
-                            putchar(c);
-                            int lastC = getc(fid);
-                            if (lastC == EOF) 
-                            {
-                                stillReading = FALSE;
-                            }
-                            else
-                            {
-                                putchar(lastC);
-                                int inComment = TRUE;
-
-                                while (inComment)
-                                {
-                                    c = getc(fid);
-                                    
-
-                                    if (c == EOF)
-                                    {
-                                        stillReading = FALSE;
-                                        inComment = FALSE;
-                                    }
-                                    else
-                                    {
-                                        if ((char)c == '/' && (char)lastC == '*')
-                                        {
-                                            inComment = FALSE;
-                                        }
-                                        else
-                                        {
-                                            putchar(c);
-                                            lastC = c;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        // not a comment but a slashsym instead
-                        else
-                        {
-                            namerecord_t newRec;
-                            newRec.kind = slashsym;
-                            newRec.name[0] = '/';
-                            newRec.name[1] = '\0';
-                            newRec.val = 0;
-                            newRec.level = 0;
-                            newRec.adr = 0;
-
-                            symbol_table[symbol_table_index++] = newRec;
-                        }
-                        
-                    }
-
-                // clean out the nextWord for the next symbol
-                nextWord[0] = '\0';
-                i = 0;
-
-            }
-            // this means it wasn't a special symbol and might be some other thing, but we are at the end of
-            // the thing so we need to tokenize it
-            else if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r' || !stillReading)
-            {
-                if (i>0)
-                {
-                    // these are whole words that always have a break after them
-                    if (strcmp(nextWord, "const") == 0)
-                    {
-                        namerecord_t newRec;
-                        newRec.kind = constsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "var") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = varsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "proecedure") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = procsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "call") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = callsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "begin") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = beginsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "if") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = ifsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "then") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = thensym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "const") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = varsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "const") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = varsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "const") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = varsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    else if (strcmp(nextWord, "const") == 0)
-                    {   
-                        namerecord_t newRec;
-                        newRec.kind = varsym;
-                        strcpy(newRec.name, nextWord);
-                        newRec.val = 0;
-                        newRec.level = 0;
-                        newRec.adr = 0;
-
-                        symbol_table[symbol_table_index++] = newRec;
-                    }
-                    
-                }
-
-                nextWord[0] = '\0';
-                i = 0;
-            }
-
-            // this means we still have more consecutive chars for this thing
-            else
-            {
-                if (i > MAX_IDENTIFIER_LENGTH)
-                    halt = TRUE;
-                nextWord[i] = ch;
-                nextWord[++i] = '\0';
-
-                
-            }
-        }
-        fclose(fid);
+        // unrecognized sequence
+        printf("\nUnrecognized sequence! Halting!\n");
+        halt = TRUE;
+        return;
     }
 
 }
 
 // a second attempt at doing this whole thing...
-void readInputBetterer(char *filename)
+void readInput(char *filename)
 {
     // opens the file
     FILE *fid;
@@ -686,6 +248,7 @@ void readInputBetterer(char *filename)
     nextWord[0] = '\0';
     int i = 0;
 
+    int stillReading = TRUE;
     while (stillReading == TRUE && halt == FALSE)
     {
         // read the next char and print it
@@ -701,11 +264,194 @@ void readInputBetterer(char *filename)
         if (isdigit(c))
         {
             // digit path.  must continue to be a digit or we halt.
+            int value = c - '0';
+            int digitEnded = FALSE;
+            i = 0;
+            nextWord[i] = (char)c;
+            nextWord[++i] = '\0';
+
+            while (digitEnded == FALSE)
+            {
+                char nextC = peekC(fid);
+
+                if (isInvisible(nextC) || isSpecialSymbols(nextC))
+                {
+                    // wrap up token here
+                    halt = !addNewSymbol(numbersym, nextWord, value, 0, 0);
+                    digitEnded = TRUE;
+                }
+                else if (isdigit(nextC))
+                {
+                    // more digit to get.
+                    c = getc(fid);
+                    putchar(c);
+                    nextWord[i] = (char)c;
+                    nextWord[++i] = '\0';
+                    value = 10 * value + (c - '0');
+                }
+                else if (nextC == EOF)
+                {
+                    // unexpected end
+                    halt == TRUE;
+                    break;
+                }
+                else if (isalpha(nextC))
+                {
+                    // alpha in my digits.  halt processing.
+                    halt == TRUE;
+                    break;
+                }
+
+            }            
+
+            if (i > MAX_NUMBER_LENGTH)
+            {
+                // digit was too long!
+                halt == TRUE;
+                break;
+            }
+
+            if (c == EOF)
+            {
+                stillReading = FALSE;
+                break;
+            }
         }
         else if (isalpha(c))
         {
-            // alpha path.  can be either digit or alpha but no special.
+            // alpha path.  can be either digit or alpha.  Special or invis ends.
+            // can't be longer than MAX_IDENTIFIER_LENGTH'
+            int alphaEnded = FALSE;
+            i = 0;
+            nextWord[i] = (char)c;
+            nextWord[++i] = '\0';
+
+            while (alphaEnded == FALSE)
+            {
+                char nextC = peekC(fid);
+
+                if (isInvisible(nextC) || isSpecialSymbols(nextC) || nextC == EOF)
+                {
+                    // wrap up token here
+                    // check to see if this was a reservedWord, if it is, add it as one
+                    // otherwise add it as a identsym
+                    if (!isReservedWord(nextWord))
+                    {
+                        halt = !addNewSymbol(identsym, nextWord, 0, 0, 0);
+                    }
+                    alphaEnded = TRUE;
+                }
+                else if (isalpha(nextC) || isdigit(nextC))
+                {
+                    // more stuff to get.
+                    c = getc(fid);
+                    putchar(c);
+                    nextWord[i] = (char)c;
+                    nextWord[++i] = '\0';
+                }
+            }            
+
+            if (i > MAX_IDENTIFIER_LENGTH)
+            {
+                // ident was too long!
+                halt == TRUE;
+                break;
+            }
+
+            if (c == EOF)
+            {
+                stillReading = FALSE;
+                break;
+            }
+        }
+        else if (isSpecialSymbols(c))
+        {
+            // special symbols path
+
+            // take a looksee at the next char
+            char nextC = peekC(fid);
+
+            if (!isSpecialSymbols(nextC))
+            {
+                // we're done let's pack it up
+                // this means we found a single char special symbol
+                 int currentSym = -1;
+                if ((char)c == '+') currentSym = plussym;
+                else if ((char)c == '-') currentSym = minussym;
+                else if ((char)c == '*') currentSym = multsym;
+                else if ((char)c == '/') currentSym = slashsym;
+                else if ((char)c == '(') currentSym = lparentsym;
+                else if ((char)c == ')') currentSym = rparentsym;
+                else if ((char)c == '=') currentSym = eqlsym;
+                else if ((char)c == ',') currentSym = commasym;
+                else if ((char)c == '.') currentSym = periodsym;
+                else if ((char)c == '<') currentSym = lessym;
+                else if ((char)c == '>') currentSym = gtrsym;
+                else if ((char)c == ';') currentSym = semicolonsym;
+
+                // if we didn't match, well bad things happened.
+                if (currentSym == -1) halt == TRUE;
+                else
+                {
+                    nextWord[0] = (char)c;
+                    nextWord[1] = '\0';
+                    halt = !addNewSymbol(currentSym, nextWord, 0, 0, 0);
+                }
+            }
+            else if ((char)c == '/' ||
+                     (char)c == '<' ||
+                     (char)c == '>' ||
+                     (char)c == ':')
+            {
+                // so we have two consecutive special symbols.
+                // do we match one of our paired special symbols?
+                nextWord[0] = (char)c;
+                c = getc(fid);
+                putchar(c);
+                nextWord[1] = (char)c;
+                nextWord[2] = '\0';
+
+                handleSpecialSymbolPair(nextWord, fid);
+
+            }
+            else
+            {
+                // this means we found an invalid pair.
+                printf("\nUnrecognized symbols! Halting!\n");
+                halt = TRUE;
+                break;
+            }
+        }
+        else if (isInvisible(c))
+        {
+            // we are ignoring invis chars like newlines and whitespace.
+        }
+        else
+        {
+            // unrecognized character.
+            printf("\nUnrecognized character (%d)! Halting!\n", c);
+            halt = TRUE;
+            break;
         }
     }
 
+}
+
+// attempt to add new token
+int addNewSymbol(int kind, char* name, int val, int level, int adr)
+{
+    if (symbol_table_index + 1 >= MAX_SYMBOL_TABLE_SIZE) return FALSE;
+
+    //printf("Adding %d %s\n",kind, name);
+
+    namerecord_t newRec;
+    newRec.kind = kind;
+    strcpy(newRec.name, name);
+    newRec.val = val;
+    newRec.level = level;
+    newRec.adr = adr;
+
+    symbol_table[symbol_table_index++] = newRec;
+
+    return TRUE;
 }
