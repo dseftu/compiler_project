@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -43,10 +44,6 @@
 #define readsym 32
 #define elsesym 33
 
-#define const 1
-#define var 2
-#define proc 3
-
 #define MAX_IDENTIFIER_LENGTH 11
 #define MAX_NUMBER_LENGTH 5
 #define MAX_SYMBOL_TABLE_SIZE 100
@@ -54,6 +51,7 @@
 // the halt flag.  When set to TRUE, the program ends
 int halt = FALSE;
 
+// Given from the problem statement:
 /*** structure of the symbol table record ***/
 typedef struct  
 { 
@@ -62,7 +60,8 @@ typedef struct
     int val; 		// number (ASCII value) 
     int level; 		// L  level
     int adr; 		// M  address
-} namerecord_t; 
+} namerecord_t;
+
 
 namerecord_t symbol_table[MAX_SYMBOL_TABLE_SIZE];
 int symbol_table_index = 0;
@@ -159,7 +158,7 @@ int isReservedWord(char* word)
 
     if (strcmp(word, "const") == 0) currentSym = constsym;
     else if (strcmp(word, "var") == 0) currentSym = varsym;
-    else if (strcmp(word, "proecedure") == 0) currentSym = procsym;
+    else if (strcmp(word, "procedure") == 0) currentSym = procsym;
     else if (strcmp(word, "call") == 0) currentSym = callsym;
     else if (strcmp(word, "begin") == 0) currentSym = beginsym;
     else if (strcmp(word, "end") == 0) currentSym = endsym;
