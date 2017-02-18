@@ -54,6 +54,7 @@
 // the halt flag.  When set to TRUE, the program ends
 int halt = FALSE;
 
+// Given from the problem statement:
 /*** structure of the symbol table record ***/
 typedef struct  
 { 
@@ -62,7 +63,8 @@ typedef struct
     int val; 		// number (ASCII value) 
     int level; 		// L  level
     int adr; 		// M  address
-} namerecord_t; 
+} namerecord_t;
+
 
 namerecord_t symbol_table[MAX_SYMBOL_TABLE_SIZE];
 int symbol_table_index = 0;
