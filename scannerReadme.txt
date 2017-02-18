@@ -17,6 +17,6 @@ gcc scanner.c -o scanner
 to run:
 ./scanner <input code file>
 
-A sample file was submitted along with this assignment, fact.p.
+A sample file was submitted along with this assignment, testprogram.pl0
 To execute that file, type the following:
-./scanner sample.pl0
+./scanner testprogram.pl0
