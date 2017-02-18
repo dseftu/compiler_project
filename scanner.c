@@ -80,6 +80,8 @@ void readInput(char *filename);
 char peekC(FILE *fid);
 int addNewSymbol(int kind, char* name, int val, int level, int adr);
 void handleSpecialSymbolPair(char* word, FILE*fid);
+void printLexemeTable();
+void printLexemeList();
 
 int main(int argc, char *argv[])
 {
@@ -91,13 +93,18 @@ int main(int argc, char *argv[])
     }
 
     // read in the input file
-    readInputBetterer(argv[1]);
+    readInput(argv[1]);
 
-    printf("found %d symbols\n", symbol_table_index);
+    printf("\n");
+    printLexemeTable();
+
+    printf("\n");
+    printLexemeList();
 
     return 0;
 }
 
+// determines if this is a special symbol
 int isSpecialSymbols(char c)
 {
     if (c == '+' ||
@@ -121,6 +128,7 @@ int isSpecialSymbols(char c)
     return FALSE;
 }
 
+// determines if this is a char to ignore
 int isInvisible(char c)
 {
     if (c == ' ' ||
@@ -164,6 +172,7 @@ int isReservedWord(char* word)
 
 }
 
+// gets a copy of the next char in the file
 char peekC(FILE *fid)
 {
     int nextC = getc(fid);
@@ -171,12 +180,14 @@ char peekC(FILE *fid)
     return (char)nextC;
 }
 
+// handles a special symbol pair and adds to the symbol table if needed
 void handleSpecialSymbolPair(char* word, FILE*fid)
 {
     // see if the next char is a special symbol because that is right out
     char nextC = peekC(fid);
     if (isSpecialSymbols(nextC))
     {
+        printf("\nInvalid symbol!  Halting!\n");
         halt = TRUE;
         return;
     }
@@ -292,13 +303,14 @@ void readInput(char *filename)
                 else if (nextC == EOF)
                 {
                     // unexpected end
-                    halt == TRUE;
+                    halt = TRUE;
                     break;
                 }
                 else if (isalpha(nextC))
                 {
                     // alpha in my digits.  halt processing.
-                    halt == TRUE;
+                    printf("\nInvalid identifier!  Halting!\n");
+                    halt = TRUE;
                     break;
                 }
 
@@ -307,7 +319,8 @@ void readInput(char *filename)
             if (i > MAX_NUMBER_LENGTH)
             {
                 // digit was too long!
-                halt == TRUE;
+                printf("\nNumber was too long!  Halting!\n");
+                halt = TRUE;
                 break;
             }
 
@@ -354,7 +367,8 @@ void readInput(char *filename)
             if (i > MAX_IDENTIFIER_LENGTH)
             {
                 // ident was too long!
-                halt == TRUE;
+                printf("\nIdentifier too long!  Halting!\n");
+                halt = TRUE;
                 break;
             }
 
@@ -390,7 +404,11 @@ void readInput(char *filename)
                 else if ((char)c == ';') currentSym = semicolonsym;
 
                 // if we didn't match, well bad things happened.
-                if (currentSym == -1) halt == TRUE;
+                if (currentSym == -1) 
+                {
+                    printf("\nInvalid symbol!  Halting!\n");
+                    halt = TRUE;
+                }
                 else
                 {
                     nextWord[0] = (char)c;
@@ -440,7 +458,11 @@ void readInput(char *filename)
 // attempt to add new token
 int addNewSymbol(int kind, char* name, int val, int level, int adr)
 {
-    if (symbol_table_index + 1 >= MAX_SYMBOL_TABLE_SIZE) return FALSE;
+    if (symbol_table_index + 1 >= MAX_SYMBOL_TABLE_SIZE) 
+    {
+        printf("\nSymbol table full!  Halting!\n");
+        return FALSE;
+    }
 
     //printf("Adding %d %s\n",kind, name);
 
@@ -454,4 +476,40 @@ int addNewSymbol(int kind, char* name, int val, int level, int adr)
     symbol_table[symbol_table_index++] = newRec;
 
     return TRUE;
+}
+
+// print the lexeme table
+void printLexemeTable()
+{
+    // header 
+    printf("\nLexeme Table:\n");
+    printf("lexeme\ttoken type\n");
+
+    // iterate through the table, printing the name and token value
+    int i = 0;
+    for (i = 0; i < symbol_table_index; i++)
+    {
+        printf("%s\t%d\n", symbol_table[i].name, symbol_table[i].kind);
+    }
+
+}
+
+// the problem statement included two different representations of the lexeme table.
+// here is the other variant.
+// print the lexeme list
+void printLexemeList()
+{
+    // header 
+    printf("\nLexeme List:\n");
+
+    // iterate through the table, printing the name and token value
+    int i = 0;
+    for (i = 0; i < symbol_table_index; i++)
+    {
+        printf("%d ", symbol_table[i].kind);
+            if (symbol_table[i].kind == identsym)
+                printf("%s ", symbol_table[i].name);
+            if (symbol_table[i].kind == numbersym)
+                printf("%d ", symbol_table[i].val);
+    }   
 }
