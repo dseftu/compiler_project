@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -42,10 +43,6 @@
 #define writesym 31
 #define readsym 32
 #define elsesym 33
-
-#define const 1
-#define var 2
-#define proc 3
 
 #define MAX_IDENTIFIER_LENGTH 11
 #define MAX_NUMBER_LENGTH 5
@@ -161,7 +158,7 @@ int isReservedWord(char* word)
 
     if (strcmp(word, "const") == 0) currentSym = constsym;
     else if (strcmp(word, "var") == 0) currentSym = varsym;
-    else if (strcmp(word, "proecedure") == 0) currentSym = procsym;
+    else if (strcmp(word, "procedure") == 0) currentSym = procsym;
     else if (strcmp(word, "call") == 0) currentSym = callsym;
     else if (strcmp(word, "begin") == 0) currentSym = beginsym;
     else if (strcmp(word, "end") == 0) currentSym = endsym;
