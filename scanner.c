@@ -54,14 +54,6 @@
 // the halt flag.  When set to TRUE, the program ends
 int halt = FALSE;
 
-/* list of reserved word names */
-char *word [ ] = {  "null", "begin", "call", "const", "do", "else", "end", "if", 
-	             "odd", "procedure", "read", "then", "var", "while", "write"}; 
-                	       
-/* internal representation  of reserved words */
-int  wsym [ ] =  { nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym, ifsym,
-                          oddsym, procsym, readsym, thensym, varsym, whilesym, writesym};
-
 /*** structure of the symbol table record ***/
 typedef struct  
 { 
@@ -75,17 +67,36 @@ typedef struct
 namerecord_t symbol_table[MAX_SYMBOL_TABLE_SIZE];
 int symbol_table_index = 0;
 
+// returns TRUE if c is a special symbol
 int isSpecialSymbols(char c);
+
+// determines if this is an invis char
+int isInvisible(char c);
+
+// is word is a reserved word, this attempts to add it to the symbol table.
+// returns true if the word was a reserved word.  Sets halt to true
+// if the add fails.
+int isReservedWord(char* word);
+
+// performs the processing of the input file
 void readInput(char *filename);
+
+// makes a copy of the next char in the file
 char peekC(FILE *fid);
+
+// generically adds to the symbol table.  returns FALSE if fails
 int addNewSymbol(int kind, char* name, int val, int level, int adr);
+
+// handles situations with two consec. symbols.  raises halt if fails
 void handleSpecialSymbolPair(char* word, FILE*fid);
+
+// prints data output
 void printLexemeTable();
 void printLexemeList();
 
 int main(int argc, char *argv[])
 {
-    // TODO: EVERYTHING
+    // checks to make sure we got the right input
     if (argc != 2)
     {
         printf("Invalid number of arguments given.\n\nExpected:\nP-machine <input file>\n");
@@ -159,6 +170,8 @@ int isReservedWord(char* word)
     else if (strcmp(word, "do") == 0) currentSym = dosym;
     else if (strcmp(word, "read") == 0) currentSym = readsym;
     else if (strcmp(word, "write") == 0) currentSym = writesym;
+    else if (strcmp(word, "null") == 0) currentSym = nulsym;
+    else if (strcmp(word, "odd") == 0) currentSym = oddsym;
 
     // if we matched, currentSym != -1
     if (currentSym != -1)
@@ -194,21 +207,23 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
 
     int currentSym = -1;
 
+    // is this one of our valid pairs?
     if (strcmp(word, "<=") == 0) currentSym = leqsym;
     else if (strcmp(word, "<>") == 0) currentSym = neqsym;
     else if (strcmp(word, ">=") == 0) currentSym = geqsym;
     else if (strcmp(word, ":=") == 0) currentSym = becomessym;
 
+    // if it was, let's handle it
     if (currentSym != -1)
     {
         halt = !addNewSymbol(currentSym, word, 0, 0, 0);
         return;
     }
 
+    // is this our super special pair for comments?
     if (strcmp(word, "/*") == 0)
     {
-        // handle comment string
-        
+        // handle comment string        
         int lastC = getc(fid);
         if (lastC == EOF) return; // unexpected end, but who cares
         putchar(lastC);
@@ -223,7 +238,6 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
             if ((char)lastC == '*' && (char)c == '/') commentsEnded = TRUE;
             else lastC = c;
         }
-
     }
     else
     {
