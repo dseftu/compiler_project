@@ -3,6 +3,8 @@
 // COP 3402 - Systems Software
 
 #include "scanner.h"
+
+// TODO: This needs to be converted to a function that can be called from elsewhere
 /*
 int main(int argc, char *argv[])
 {
@@ -134,7 +136,7 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
     // is this our super special pair for comments?
     if (strcmp(word, "/*") == 0)
     {
-        // handle comment string        
+        // handle comment string
         int lastC = getc(fid);
         if (lastC == EOF) return; // unexpected end, but who cares
         putchar(lastC);
@@ -238,7 +240,7 @@ void scanInput(char *filename)
                     break;
                 }
 
-            }            
+            }
 
             if (i > MAX_NUMBER_LENGTH)
             {
@@ -286,7 +288,7 @@ void scanInput(char *filename)
                     nextWord[i] = (char)c;
                     nextWord[++i] = '\0';
                 }
-            }            
+            }
 
             if (i > MAX_IDENTIFIER_LENGTH)
             {
@@ -328,7 +330,7 @@ void scanInput(char *filename)
                 else if ((char)c == ';') currentSym = semicolonsym;
 
                 // if we didn't match, well bad things happened.
-                if (currentSym == -1) 
+                if (currentSym == -1)
                 {
                     printf("\nInvalid symbol!  Halting!\n");
                     halt = TRUE;
@@ -382,7 +384,7 @@ void scanInput(char *filename)
 // attempt to add new token
 int addNewSymbol(int kind, char* name, int val, int level, int adr)
 {
-    if (symbol_table_index + 1 >= MAX_SYMBOL_TABLE_SIZE) 
+    if (symbol_table_index + 1 >= MAX_SYMBOL_TABLE_SIZE)
     {
         printf("\nSymbol table full!  Halting!\n");
         return FALSE;
@@ -405,7 +407,7 @@ int addNewSymbol(int kind, char* name, int val, int level, int adr)
 // print the lexeme table
 void printLexemeTable()
 {
-    // header 
+    // header
     printf("\nLexeme Table:\n");
     printf("lexeme\ttoken type\n");
 
@@ -423,7 +425,7 @@ void printLexemeTable()
 // print the lexeme list
 void printLexemeList()
 {
-    // header 
+    // header
     printf("\nLexeme List:\n");
 
     // iterate through the table, printing the name and token value
@@ -435,5 +437,5 @@ void printLexemeList()
                 printf("%s ", symbol_table[i].name);
             if (symbol_table[i].kind == numbersym)
                 printf("%d ", symbol_table[i].val);
-    }   
+    }
 }

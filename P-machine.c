@@ -16,12 +16,12 @@
 // In addition, there will be 16 registers for the
 // program to store and write data to.
 
-#include "P-machine.h"
-
 // used to find a variable in a different activation record
 int base(int l, int base);
-int halt = FALSE;
+extern int halt;
+#include "P-machine.h"
 
+// TODO: This main function needs to be converted so that we can run the P-machine in compiler.
 /*
 int main(int argc, char *argv[])
 {

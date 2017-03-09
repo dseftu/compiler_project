@@ -1,6 +1,10 @@
 // David M Allen
 // Scanner Header
 // COP 3402 - Systems Software
+
+#ifndef SCANNER_H
+#define SCANNER_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -88,3 +92,5 @@ void handleSpecialSymbolPair(char* word, FILE*fid);
 // prints data output
 void printLexemeTable();
 void printLexemeList();
+
+#endif

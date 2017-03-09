@@ -8,7 +8,6 @@
 #include <string.h>
 #include <ctype.h>
 
-
 #define MAX_STACK_HEIGHT 2000
 #define MAX_CODE_LENGTH 500
 #define MAX_LEXI_LEVELS 3
@@ -16,7 +15,6 @@
 
 #define TRUE 1
 #define FALSE 0
-
 
 // Basic instructions
 #define LIT 1

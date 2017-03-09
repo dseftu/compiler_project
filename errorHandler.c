@@ -2,11 +2,19 @@
 // Error Messages Handler
 // COP 3402 - Systems Software
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
 #include "errorHandler.h"
+#include "errorCodes.h"
+
+extern int halt;
 
 void error(int errorCode)
 {
-    
+
     halt = TRUE; // might make this optional to raise in a future version
     switch (errorCode)
     {
@@ -141,6 +149,6 @@ void error(int errorCode)
             printf("%s\n", "UNKNOWN ERROR CODE");
             return;
         }
-        
+
     }
 }
