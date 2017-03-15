@@ -7,29 +7,33 @@
 #include <string.h>
 #include <ctype.h>
 
-#define TRUE 1
-#define FALSE 0
+#include "common.h"
+#include "compiler.h"
+#include "errorCodes.h"
 
 // the halt flag.  When set to TRUE, the program ends
 int halt = FALSE;
 
-#include "compiler.h"
-#include "errorCodes.h"
-
 int main(int argc, char *argv[])
 {
     // process input arguments to the compiler
-    printf("%s\n", "test");
-    // TODO: Remove this error.  This was a test of the errorhandler.
-    error(BADCONSTASSIGNMENTSYMBOL);
+    
+    // set flags as appropriate dependend on args
+    
+    
     // process input via the scanner
     // Pseudo code:
     // lexemeList = scan(inputFilename);
     // either just have the list be in mem or pass it back (probably pass it back)
+    int lexemeListMaxIndex = 0;
+    namerecord_t* lexemeList;
+    lexemeList = scan(argv[1], &lexemeListMaxIndex);
+    if (halt == TRUE) return 0;
+    
+    // TODO:  Make this print be optional depending on args
+    printLexemeTable(lexemeList, lexemeListMaxIndex);
 
     if (halt == TRUE) return 0;
-    // TODO: Remove this error.  This was a test of the errorhandler.
-    error(BADSYMBOLAFTERSTMT);
     // write lexeme list to a file
 
     // send output of scanner to parser to process
