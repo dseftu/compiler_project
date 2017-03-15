@@ -2,31 +2,18 @@
 // Scanner
 // COP 3402 - Systems Software
 
+#include "common.h"
 #include "scanner.h"
 
-// TODO: This needs to be converted to a function that can be called from elsewhere
-/*
-int main(int argc, char *argv[])
+// Scans an input file and returns the lexeme table
+// TODO:  Need to allow for this to optionally print code
+namerecord_t* scan(char* filename, int* symbolTableEnd)
 {
-    // checks to make sure we got the right input
-    if (argc != 2)
-    {
-        printf("Invalid number of arguments given.\n\nExpected:\nP-machine <input file>\n");
-        return 0;
-    }
+    scanInput(filename);
+    *symbolTableEnd = symbol_table_index;
 
-    // read in the input file
-    scanInput(argv[1]);
-
-    printf("\n");
-    printLexemeTable();
-
-    printf("\n");
-    printLexemeList();
-
-    return 0;
+    return symbol_table;
 }
-*/
 
 // determines if this is a special symbol
 int isSpecialSymbols(char c)
@@ -405,7 +392,7 @@ int addNewSymbol(int kind, char* name, int val, int level, int adr)
 }
 
 // print the lexeme table
-void printLexemeTable()
+void printLexemeTable(namerecord_t* lexemeList, int maxIndex)
 {
     // header
     printf("\nLexeme Table:\n");
@@ -413,7 +400,7 @@ void printLexemeTable()
 
     // iterate through the table, printing the name and token value
     int i = 0;
-    for (i = 0; i < symbol_table_index; i++)
+    for (i = 0; i < maxIndex; i++)
     {
         printf("%s\t%d\n", symbol_table[i].name, symbol_table[i].kind);
     }
@@ -423,14 +410,14 @@ void printLexemeTable()
 // the problem statement included two different representations of the lexeme table.
 // here is the other variant.
 // print the lexeme list
-void printLexemeList()
+void printLexemeList(namerecord_t* lexemeList, int maxIndex)
 {
     // header
     printf("\nLexeme List:\n");
 
     // iterate through the table, printing the name and token value
     int i = 0;
-    for (i = 0; i < symbol_table_index; i++)
+    for (i = 0; i < maxIndex; i++)
     {
         printf("%d ", symbol_table[i].kind);
             if (symbol_table[i].kind == identsym)
