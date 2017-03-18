@@ -6,12 +6,13 @@
 extern void error(int errorCode);
 
 // This function generates the lexeme list from the code 
-extern namerecord_t* scan(char* filename, int* symbolTableEnd);
+extern lexeme* scan(char* filename, int* symbolTableEnd);
 
 // prints data output from lexeme list
-extern void printLexemeTable(namerecord_t* lexemeList, int maxIndex);
-extern void printLexemeList(namerecord_t* lexemeList, int maxIndex);
+extern void printLexemeTable(lexeme* lexemeList, int maxIndex);
+extern void printLexemeList(lexeme* lexemeList, int maxIndex);
 
 
-
+// parser commands
+extern void parse(lexeme* _lexemeList, int _maxIndex);
 

@@ -7,12 +7,12 @@
 
 // Scans an input file and returns the lexeme table
 // TODO:  Need to allow for this to optionally print code
-namerecord_t* scan(char* filename, int* symbolTableEnd)
+lexeme* scan(char* filename, int* _lexemeListEnd)
 {
     scanInput(filename);
-    *symbolTableEnd = symbol_table_index;
+    *_lexemeListEnd = lexemeTableIndex;
 
-    return symbol_table;
+    return lexemeList;
 }
 
 // determines if this is a special symbol
@@ -76,7 +76,7 @@ int isReservedWord(char* word)
     // if we matched, currentSym != -1
     if (currentSym != -1)
     {
-        halt = !addNewSymbol(currentSym, word, 0, 0, 0);
+        halt = !addNewSymbol(currentSym, word, 0);
         return TRUE;
     }
 
@@ -116,7 +116,7 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
     // if it was, let's handle it
     if (currentSym != -1)
     {
-        halt = !addNewSymbol(currentSym, word, 0, 0, 0);
+        halt = !addNewSymbol(currentSym, word, 0);
         return;
     }
 
@@ -201,7 +201,7 @@ void scanInput(char *filename)
                 if (isInvisible(nextC) || isSpecialSymbols(nextC))
                 {
                     // wrap up token here
-                    halt = !addNewSymbol(numbersym, nextWord, value, 0, 0);
+                    halt = !addNewSymbol(numbersym, nextWord, value);
                     digitEnded = TRUE;
                 }
                 else if (isdigit(nextC))
@@ -263,7 +263,7 @@ void scanInput(char *filename)
                     // otherwise add it as a identsym
                     if (!isReservedWord(nextWord))
                     {
-                        halt = !addNewSymbol(identsym, nextWord, 0, 0, 0);
+                        halt = !addNewSymbol(identsym, nextWord, 0);
                     }
                     alphaEnded = TRUE;
                 }
@@ -326,7 +326,7 @@ void scanInput(char *filename)
                 {
                     nextWord[0] = (char)c;
                     nextWord[1] = '\0';
-                    halt = !addNewSymbol(currentSym, nextWord, 0, 0, 0);
+                    halt = !addNewSymbol(currentSym, nextWord, 0);
                 }
             }
             else if ((char)c == '/' ||
@@ -369,30 +369,26 @@ void scanInput(char *filename)
 }
 
 // attempt to add new token
-int addNewSymbol(int kind, char* name, int val, int level, int adr)
+int addNewSymbol(int kind, char* name, int val)
 {
-    if (symbol_table_index + 1 >= MAX_SYMBOL_TABLE_SIZE)
+    if (lexemeTableIndex + 1 >= MAX_SYMBOL_TABLE_SIZE)
     {
         printf("\nSymbol table full!  Halting!\n");
         return FALSE;
     }
 
-    //printf("Adding %d %s\n",kind, name);
-
-    namerecord_t newRec;
+    lexeme newRec;
     newRec.kind = kind;
     strcpy(newRec.name, name);
     newRec.val = val;
-    newRec.level = level;
-    newRec.adr = adr;
 
-    symbol_table[symbol_table_index++] = newRec;
+    lexemeList[lexemeTableIndex++] = newRec;
 
     return TRUE;
 }
 
 // print the lexeme table
-void printLexemeTable(namerecord_t* lexemeList, int maxIndex)
+void printLexemeTable(lexeme* lexemeList, int maxIndex)
 {
     // header
     printf("\nLexeme Table:\n");
@@ -402,7 +398,7 @@ void printLexemeTable(namerecord_t* lexemeList, int maxIndex)
     int i = 0;
     for (i = 0; i < maxIndex; i++)
     {
-        printf("%s\t%d\n", symbol_table[i].name, symbol_table[i].kind);
+        printf("%s\t%d\n", lexemeList[i].name, lexemeList[i].kind);
     }
 
 }
@@ -410,19 +406,21 @@ void printLexemeTable(namerecord_t* lexemeList, int maxIndex)
 // the problem statement included two different representations of the lexeme table.
 // here is the other variant.
 // print the lexeme list
-void printLexemeList(namerecord_t* lexemeList, int maxIndex)
+void printLexemeList(lexeme* lexemeList, int maxIndex)
 {
     // header
-    printf("\nLexeme List:\n");
+    printf("\n\nLexeme List:\n");
 
     // iterate through the table, printing the name and token value
     int i = 0;
     for (i = 0; i < maxIndex; i++)
     {
-        printf("%d ", symbol_table[i].kind);
-            if (symbol_table[i].kind == identsym)
-                printf("%s ", symbol_table[i].name);
-            if (symbol_table[i].kind == numbersym)
-                printf("%d ", symbol_table[i].val);
+        printf("%d ", lexemeList[i].kind);
+            if (lexemeList[i].kind == identsym)
+                printf("%s ", lexemeList[i].name);
+            if (lexemeList[i].kind == numbersym)
+                printf("%d ", lexemeList[i].val);
     }
+
+    printf("\n");
 }

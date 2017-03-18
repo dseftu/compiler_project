@@ -26,19 +26,18 @@ int main(int argc, char *argv[])
     // lexemeList = scan(inputFilename);
     // either just have the list be in mem or pass it back (probably pass it back)
     int lexemeListMaxIndex = 0;
-    namerecord_t* lexemeList;
+    lexeme* lexemeList;
     lexemeList = scan(argv[1], &lexemeListMaxIndex);
     if (halt == TRUE) return 0;
     
     // TODO:  Make this print be optional depending on args
-    printLexemeTable(lexemeList, lexemeListMaxIndex);
-
+    printLexemeList(lexemeList, lexemeListMaxIndex);
     if (halt == TRUE) return 0;
-    // write lexeme list to a file
+    // write lexeme list to a file?
 
     // send output of scanner to parser to process
     // Pseudo code:
-    // parse(lexemeList)
+    parse(lexemeList, lexemeListMaxIndex);
     // There is no output from parse other than whether the code halted
     if (halt == TRUE) return 0;
 
