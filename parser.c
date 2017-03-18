@@ -12,7 +12,7 @@
 #include "errorCodes.h"
 
 lexeme lexemeList[MAX_SYMBOL_TABLE_SIZE];
-symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+symbol symbolTable[MAX_SYMBOL_TABLE_SIZE];
 int table = 0;
 int level = -1;
 int ident;
@@ -134,6 +134,7 @@ void block()
 		getToken();
 		
 		// not sure if this should be on table or table-1
+		// this should take place in enter()
 		//lexemeList[table].adr = procadd;
 		//lexemeList[table].level = level;
 		//proc++;
@@ -151,18 +152,6 @@ void block()
 	statement();
 	//level--;
 }
-
-/*
-statement   ::= [ ident ":=" expression
-	      	| "begin" statement { ";" statement } "end" 
-	      	| "if" condition "then" statement 
-		| "while" condition "do" statement
-| "read" ident 
-		| "write"  ident 
-	      	| e ] .  
-
-*/
-
 
 // TODO
 void statement()
