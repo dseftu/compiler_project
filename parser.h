@@ -18,3 +18,6 @@ void factor();
 //int relop();
 
 extern int halt;
+
+extern void genCode(int op, int r, int l, int m);
+void buildTestObjectCode();
