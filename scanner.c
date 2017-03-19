@@ -165,7 +165,7 @@ void scanInput(char *filename)
     }
 
     // print header
-    printf("Source Program:\n");
+    //printf("Source Program:\n");
 
     // this will be used to store identifiers as we read them
     char nextWord[MAX_IDENTIFIER_LENGTH];
@@ -182,7 +182,7 @@ void scanInput(char *filename)
             stillReading = FALSE;
             break;
         }
-        putchar(c);
+        //putchar(c);
 
         // determine what to do with this c
         if (isdigit(c))
@@ -208,7 +208,7 @@ void scanInput(char *filename)
                 {
                     // more digit to get.
                     c = getc(fid);
-                    putchar(c);
+                    //putchar(c);
                     nextWord[i] = (char)c;
                     nextWord[++i] = '\0';
                     value = 10 * value + (c - '0');
@@ -271,7 +271,7 @@ void scanInput(char *filename)
                 {
                     // more stuff to get.
                     c = getc(fid);
-                    putchar(c);
+                    //putchar(c);
                     nextWord[i] = (char)c;
                     nextWord[++i] = '\0';
                 }
@@ -338,7 +338,7 @@ void scanInput(char *filename)
                 // do we match one of our paired special symbols?
                 nextWord[0] = (char)c;
                 c = getc(fid);
-                putchar(c);
+                //putchar(c);
                 nextWord[1] = (char)c;
                 nextWord[2] = '\0';
 
@@ -409,7 +409,7 @@ void printLexemeTable(lexeme* lexemeList, int maxIndex)
 void printLexemeList(lexeme* lexemeList, int maxIndex)
 {
     // header
-    printf("\n\nLexeme List:\n");
+    printf("Lexeme List:\n");
 
     // iterate through the table, printing the name and token value
     int i = 0;
@@ -422,5 +422,5 @@ void printLexemeList(lexeme* lexemeList, int maxIndex)
                 printf("%d ", lexemeList[i].val);
     }
 
-    printf("\n");
+    printf("\n\n");
 }

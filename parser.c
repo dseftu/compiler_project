@@ -85,7 +85,7 @@ void program()
 	if (*token != periodsym)
 		error(MISSINGPERIOD);
 	if (halt == TRUE) exit(0);
-	printf("\nNo errors, program is syntactically correct.\n");
+	printf("No errors, program is syntactically correct.\n\n");
 }
 
 // Updated

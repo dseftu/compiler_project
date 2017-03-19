@@ -25,8 +25,10 @@
 #include "P-machine.h"
 
 extern int halt;
+extern int printObjectCode;
+extern int printVMExecutionTrace;
 
-void run(char* objectCodeFileName)
+void run(char *objectCodeFileName)
 {
     // read in the input file
     readInput(objectCodeFileName);
@@ -47,7 +49,7 @@ void run(char* objectCodeFileName)
     // init the stack to all zeros
     initStack();
 
-    printf("\nInitial Values\t\t\t\tPC\tBP\tSP\n");
+    if (printVMExecutionTrace == TRUE) printf("\nInitial Values\t\t\t\tPC\tBP\tSP\n");
 
     // start the main execution loop
     while (halt == FALSE && BP != 0)
@@ -65,8 +67,12 @@ void run(char* objectCodeFileName)
         execute();
 
         // print the current stack, including instruction register
-        printf("%d\t", tempPC);
-        printStack();
+        if (printVMExecutionTrace == TRUE)
+        {
+            printf("%d\t", tempPC);
+            printStack();
+        }
+        
     }
 
 }
@@ -89,7 +95,7 @@ void readInput(char *filename)
         int i = 0;
         int opcode, r, l, m;
 
-        printf("Line\tOP\tR\tL\tM\n");
+        if (printObjectCode == TRUE) printf("Line\tOP\tR\tL\tM\n");
 
         while (i < MAX_CODE_LENGTH && fscanf(fid, "%d %d %d %d", &opcode, &r, &l, &m) == 4)
         {
@@ -97,9 +103,11 @@ void readInput(char *filename)
             code[i].r = r;
             code[i].l = l;
             code[i].m = m;
-
-            printf("%d\t",i);
-            printInstruction(code[i],TRUE);
+            if (printObjectCode == TRUE)
+            {
+                printf("%d\t",i);
+                printInstruction(code[i],TRUE);
+            }
             // advance the counter
             i++;
 
@@ -120,6 +128,8 @@ void readInput(char *filename)
         }
 
         fclose(fid);
+
+        if (printObjectCode == TRUE) printf("\n");
     }
 }
 

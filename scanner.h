@@ -45,4 +45,7 @@ void handleSpecialSymbolPair(char* word, FILE*fid);
 void printLexemeTable(lexeme* lexemeList, int maxIndex);
 void printLexemeList(lexeme* lexemeList, int maxIndex);
 
+// This function is called whenever there is an error.  It raises the halt flag.
+extern void error(int errorCode);
+
 #endif

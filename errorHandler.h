@@ -31,6 +31,9 @@ const char* MISSINGRIGHTPARENMSG = "Right parenthesis missing.";
 const char* INVALIDSTARTTOFACTORMSG = "The preceding factor cannot begin with this symbol.";
 const char* INVALIDSTARTTOEXPRESSIONMSG = "An expression cannot begin with this symbol.";
 const char* TOOLARGENUMBERMSG = "This number is too large.";
+const char* INVALIDINPUTARGUMENTSMSG = "Invalid input arguments detected.\n\nExpected:  compiler [-l] [-a] [-v] inputfile\n\ninputfile\tThe PL/0 file to be compiled\n-l\tPrints the list of lexemes\n-a\tPrints the object code\n-v\tPrints the VM execution trace";
+const char* MISSINGINPUTARGUMENTSMSG = "Missing input arguments.\n\nExpected:  compiler [-l] [-a] [-v] inputfile\n\ninputfile\tThe PL/0 file to be compiled\n-l\tPrints the list of lexemes\n-a\tPrints the object code\n-v\tPrints the VM execution trace";
+const char* TOOMANYINPUTARGUMENTSMSG = "Too many input arguments.\n\nExpected:  compiler [-l] [-a] [-v] inputfile\n\ninputfile\tThe PL/0 file to be compiled\n-l\tPrints the list of lexemes\n-a\tPrints the object code\n-v\tPrints the VM execution trace";
 
 // prints the error for the specific error code.
 void error(int errorCode);

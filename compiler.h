@@ -18,7 +18,13 @@ extern void parse(lexeme* _lexemeList, int _maxIndex);
 // output filename
 extern char* objectCodeFileName;
 
+// inits a new object code file
+extern void initObjectCodeFile();
+
 void setObjectCodeFileName(char* inputFile);
+
+// processes the input arguments and verifies that they are valid
+void processInputArguments(int argc, char *argv[]);
 
 // runs the VM with the given object code
 extern void run(char *objectCodeFileName);
