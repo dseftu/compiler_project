@@ -55,7 +55,7 @@ void execute();
 int base(int l, int base);
 
 // loads the object code and executes it
-void run(char* objectCodeFileName);
+void run(char *objectCodeFileName);
 
 
 #endif

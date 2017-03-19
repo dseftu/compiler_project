@@ -146,6 +146,21 @@ void error(int errorCode)
             printf("%s\n", TOOLARGENUMBERMSG);
             return;
         }
+        case INVALIDINPUTARGUMENTS:
+        {
+            printf("%s\n", INVALIDINPUTARGUMENTSMSG);
+            return;
+        }
+        case MISSINGINPUTARGUMENTS:
+        {
+            printf("%s\n", MISSINGINPUTARGUMENTSMSG);
+            return;
+        }
+        case TOOMANYINPUTARGUMENTS:
+        {
+            printf("%s\n", TOOMANYINPUTARGUMENTSMSG);
+            return;
+        }
         default:
         {
             printf("%s\n", "UNKNOWN ERROR CODE");

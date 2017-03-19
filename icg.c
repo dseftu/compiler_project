@@ -10,6 +10,13 @@
 #include "icg.h"
 #include "common.h"
 
+void initObjectCodeFile()
+{
+    FILE *fid;
+    fid = fopen(objectCodeFileName, "w");
+    fclose(fid);
+}
+
 void genCode(int op, int r, int l, int m)
 {
     // open the file for writing
