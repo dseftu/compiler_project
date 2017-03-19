@@ -3,62 +3,12 @@
 // COP 3402 - Systems Software
 #ifndef PMACHINE_H
 #define PMACHINE_H
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
+
 
 #define MAX_STACK_HEIGHT 2000
 #define MAX_CODE_LENGTH 500
 #define MAX_LEXI_LEVELS 3
 #define MAX_REGISTERS 16
-
-#define TRUE 1
-#define FALSE 0
-
-// Basic instructions
-#define LIT 1
-#define RTN 2
-#define LOD 3
-#define STO 4
-#define CAL 5
-#define INC 6
-#define JMP 7
-#define JPC 8
-
-// techincally these are all "SIO", but I added
-// clarity to the differences.  SIO_O displays
-// output to screen, SIO_I gets input, and
-// SIO_E ends the program
-#define SIO_O 9
-#define SIO_I 10
-#define SIO_E 11
-
-// Arithmatic and logical instructions
-// these all do a task with 1 or more registers
-// and put the result in a register
-#define NEG 12
-#define ADD 13
-#define SUB 14
-#define MUL 15
-#define DIV 16
-#define ODD 17
-#define MOD 18
-#define EQL 19
-#define NEQ 20
-#define LSS 21
-#define LEQ 22
-#define GTR 23
-#define GEQ 24
-
-// Handy dandy instruction struct
-typedef struct instruction
-{
-    int op; // opcode
-    int r; // reg
-    int l; // L
-    int m; // M
-} instruction;
 
 // set up the four registers to handle the stack/code
 int BP = 1;
@@ -100,5 +50,12 @@ void fetch();
 
 // executes the instruction in the instruction register
 void execute();
+
+// used to find a variable in a different activation record
+int base(int l, int base);
+
+// loads the object code and executes it
+void run(char* objectCodeFileName);
+
 
 #endif

@@ -16,24 +16,20 @@
 // In addition, there will be 16 registers for the
 // program to store and write data to.
 
-// used to find a variable in a different activation record
-int base(int l, int base);
-extern int halt;
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#include "common.h"
 #include "P-machine.h"
 
-// TODO: This main function needs to be converted so that we can run the P-machine in compiler.
-/*
-int main(int argc, char *argv[])
-{
-    if (argc != 2)
-    {
-        printf("Invalid number of arguments given.\n\nExpected:\nP-machine <input file>\n");
-        return 0;
-    }
+extern int halt;
 
+void run(char* objectCodeFileName)
+{
     // read in the input file
-    readInput(argv[1]);
-    //if (halt == TRUE) return 0;
+    readInput(objectCodeFileName);
 
     // init the instruction register
     IR.op = 0;
@@ -73,9 +69,8 @@ int main(int argc, char *argv[])
         printStack();
     }
 
-    return 0;
 }
-*/
+
 void readInput(char *filename)
 {
     // opens the file

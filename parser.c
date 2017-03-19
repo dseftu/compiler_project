@@ -37,7 +37,39 @@ void parse(lexeme* _lexemeList, int _maxIndex)
 	if (halt == TRUE) exit(0);
 	*lexemeList = *_lexemeList;
 	maxIndex = _maxIndex;
-	program();	
+	program();
+
+	// TODO: Remove this once real object code is being generated
+	buildTestObjectCode();
+}
+
+// TODO: Remove this once real object code is being generated
+// this is builds an example object code since we don't have that implemented
+// in the parser yet
+void buildTestObjectCode()
+{
+    genCode(INC, 0, 0, 6);
+	genCode(LIT, 0, 0, 6);
+	genCode(STO, 0, 0, 4);
+	genCode(LOD, 0, 0, 4);
+	genCode(LIT, 1, 0, 0);
+	genCode(GTR, 0, 0, 1);
+	genCode(JPC, 0, 0, 17);
+	genCode(LOD, 0, 0, 4);
+	genCode(MUL, 0, 0, 0);
+	genCode(STO, 0, 0, 5);
+	genCode(LOD, 0, 0, 4);
+	genCode(LIT, 1, 0, 1);
+	genCode(SUB, 0, 0, 1);
+	genCode(STO, 0, 0, 4);
+	genCode(LOD, 0, 0, 5);
+	genCode(SIO_O, 0, 0, 1);
+	genCode(JMP, 0, 0, 3);
+	genCode(LOD, 0, 0, 4);
+	genCode(SIO_O, 0, 0, 1);
+	genCode(LOD, 0, 0, 5);
+	genCode(SIO_O, 0, 0, 1);
+	genCode(RTN, 0, 0, 0);
 }
 
 // TODO
