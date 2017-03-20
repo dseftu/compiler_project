@@ -429,7 +429,8 @@ void factor()
 	}
 	else if(*token == numbersym)
 	{
-		getToken();
+		getToken(); // number retrieved
+		getToken(); 
 	}
 	else if(*token == lparentsym)
 	{
