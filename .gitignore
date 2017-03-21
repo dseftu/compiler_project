@@ -1,4 +1,6 @@
 *.json
+./vscode
+*.
 
 # Prerequisites
 *.d
