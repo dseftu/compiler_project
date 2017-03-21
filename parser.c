@@ -76,6 +76,18 @@ void buildTestObjectCode()
 // enter a new symbol in the symbol table
 //void enter(...)
 //{}
+// Exist function for checking if symbol is already in table
+int exist()
+{
+		int i;
+	for(i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++)
+	{
+		if(test.kind == symbolTable[i].kind && strcmp(test.name, symbolTable[i].name) == 0
+		   && test.val == symbolTable[i].val && test.addr == symbolTable[i].addr)
+			return 1;
+	}
+	return 0;
+}
 
 // Updated
 void program()
