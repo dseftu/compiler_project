@@ -15,7 +15,7 @@ void condition();
 void expression();
 void term();
 void factor();
-//int relop();
+int type();
 
 extern int halt;
 

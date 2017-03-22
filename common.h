@@ -89,7 +89,7 @@
         char name[MAX_IDENTIFIER_LENGTH];	// name up to 11 chars
         int val; 		// number (ASCII value)
         int level; 		// L  level
-        int adr; 		// M  address
+        int addr; 		// M  address
     } symbol;
 
     typedef struct
