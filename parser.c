@@ -19,6 +19,8 @@ int ident;
 int procadd = 0;
 extern int halt;
 
+int symbolTableIndex = 0;
+
 // max index of the lexemeList.  When getToken() is called
 // the index is checked against this to ensure we don't go off the wheels
 int maxIndex = -1;
@@ -72,24 +74,34 @@ void buildTestObjectCode()
 	genCode(RTN, 0, 0, 0);
 }
 
-// TODO
-// enter a new symbol in the symbol table
-//void enter(...)
-//{}
 // Exist function for checking if symbol is already in table
-int exist()
+int exist(symbol s)
 {
-		int i;
+	int i;
 	for(i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++)
 	{
-		if(test.kind == symbolTable[i].kind && strcmp(test.name, symbolTable[i].name) == 0
-		   && test.val == symbolTable[i].val && test.addr == symbolTable[i].addr)
-			return 1;
+		if(s.kind == symbolTable[i].kind && strcmp(s.name, symbolTable[i].name) == 0
+		   && s.val == symbolTable[i].val && s.addr == symbolTable[i].addr)
+			return TRUE;
 	}
-	return 0;
+	return FALSE;
 }
 
-// Updated
+int enter(symbol s)
+{
+	// if this symbol already exists, then don't add it
+	if (exist(s) == TRUE) return FALSE;
+	symbolTable[symbolTableIndex++] = s;
+	return TRUE;
+} 
+
+// finds a symbol by name
+int find(char* name)
+{
+	//TODO this
+
+}
+
 void program()
 {
 	getToken();
@@ -100,7 +112,6 @@ void program()
 	printf("No errors, program is syntactically correct.\n\n");
 }
 
-// Updated
 void block()
 {
 	int var = 0, cons = 0, proc = 0;
@@ -114,13 +125,23 @@ void block()
 		{
 			getToken();
 
+			// create the newSymbol object
+			symbol newSymbol;
+			newSymbol.kind = constsym;
+			newSymbol.addr = 4+var;
+			var++;
+			newSymbol.level = level;
+
 			// constant must be followed by ident
 			if(*token != identsym)
 				error(MISSINGIDENTIFIER);
-			if (halt == TRUE) exit(0);	
-			getToken();
+			if (halt == TRUE) exit(0);
+
+			// grab the symbol unique name;
+			strcpy(newSymbol.name, lexemeList[table-1].name);
 
 			// const ident must be followed by =
+			getToken();
 			if(*token != eqlsym)
 				error(MISSINGCONSTASSIGNMENTSYMBOL);			
 			if (halt == TRUE) exit(0);
@@ -130,6 +151,13 @@ void block()
 			if(*token != numbersym)
 				error(CONSTASSIGNMENTMISSING);
 			if (halt == TRUE) exit(0);
+
+			newSymbol.val = *token; // grab the const value
+
+			if (enter(newSymbol) == FALSE)
+				error(-1); // TODO does this need an error here?
+			if (halt == TRUE) exit(0);
+
 			getToken();
 		}
 		while(*token == commasym); // continue checking for consts if comma 
@@ -146,17 +174,29 @@ void block()
 	{		
 		do
 		{
-			getToken();
+			getToken(); // this is the identifier
 
 			// Varaible must be followed by an identifier
 			if(*token != identsym)
 				error(MISSINGIDENTIFIER);
-			getToken();
 
-			// not sure if this should be on table or table - 1
-			//lexemeList[table].level = level;
-			//lexemeList[table].adr = 4+var;
-			//var++;			
+			// create the newSymbol object
+			symbol newSymbol;
+			newSymbol.kind = varsym;
+
+			// grab the symbol unique name;
+			strcpy(newSymbol.name, lexemeList[table-1].name);
+			newSymbol.addr = 4+var;
+			newSymbol.level = level;
+			newSymbol.val = 0; // default value for a new var
+			var++;
+
+			if (enter(newSymbol) == FALSE)
+				error(-1); // TODO does this need an error here?
+			if (halt == TRUE) exit(0);
+
+			
+			getToken();
 		}
 		while(*token == commasym);
 
@@ -169,32 +209,44 @@ void block()
 	// Procedure Declaration
 	while(*token == procsym)
 	{
-		getToken();
-
 		// Procedure must be followed by an identifier
+		getToken();
 		if(*token != identsym)
 			error(MISSINGIDENTIFIER);
 		if (halt == TRUE) exit(0);
-		getToken();
-		
-		// not sure if this should be on table or table-1
-		// this should take place in enter()
-		//lexemeList[table].adr = procadd;
-		//lexemeList[table].level = level;
-		//proc++;
+
+		// create the newSymbol object
+		symbol newSymbol;
+		newSymbol.kind = procsym;
+
+		// grab the symbol unique name;
+		strcpy(newSymbol.name, lexemeList[table-1].name);
+		newSymbol.addr = procadd;
+		newSymbol.level = level;
+		newSymbol.val = 0; // default value for a new var
+		proc++;
+
+		if (enter(newSymbol) == FALSE)
+			error(-1); // TODO does this need an error here?
+		if (halt == TRUE) exit(0);
 
 		getToken();
+
 		// ; expected
 		if(*token != semicolonsym)
 			error(MISSINGSEMICOLONORCOMMA);
 		if (halt == TRUE) exit(0);
 		getToken();
 		block();
+		// ; expected
+		if(*token != semicolonsym)
+			error(MISSINGSEMICOLONORCOMMA);
+		if (halt == TRUE) exit(0);
 		getToken();
 	}
 
 	statement();
-	//level--;
+	level--;
 }
 
 // TODO
@@ -399,7 +451,7 @@ void expression()
 {
 	if ( (*token == plussym) || (*token == minussym) )
 		getToken();
-		term();
+	term();
 	while ( (*token == plussym) || (*token == minussym) )
 	{
 		getToken();
@@ -442,7 +494,6 @@ void factor()
 	else if(*token == numbersym)
 	{
 		getToken(); // number retrieved
-		getToken(); 
 	}
 	else if(*token == lparentsym)
 	{
@@ -460,30 +511,20 @@ void factor()
 		error(INVALIDSTARTTOFACTOR);
 	if (halt == TRUE) exit(0);
 }
-/*
-// Might be removing these
-int relop()
-{
-	// if its relational return 1, 0 if not
-	if(*token >= eqlsym && *token <= geqsym)
-		return 1;
-	else
-		return 0;
-}
+
 // Check if token is a constant, variable, or procedure
 // Returns 1 if Const, 2 if var, 3 is proc, 0 if non
-int type()
+int type(char* str)
 {
 	int i;
 	for (i = 0; i < table; i++)
 	{
-		if (strcmp(str, lexemeList[i].name) == 0 && lexemeList[i].kind == 1)
-			return 1;
-		if (strcmp(str, lexemeList[i].name) == 0 && lexemeList[i].kind == 2)
-			return 2;
-		if (strcmp(str, lexemeList[i].name) == 0 && lexemeList[i].kind == 3)
-			return 3;
+		if (strcmp(str, lexemeList[i].name) == 0 && lexemeList[i].kind == constsym)
+			return constsym;
+		if (strcmp(str, lexemeList[i].name) == 0 && lexemeList[i].kind == varsym)
+			return varsym;
+		if (strcmp(str, lexemeList[i].name) == 0 && lexemeList[i].kind == procsym)
+			return procsym;
 	}
 	return 0;
 }
-*/
