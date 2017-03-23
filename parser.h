@@ -17,6 +17,7 @@ void term();
 void factor();
 int type();
 void initcode();
+void emit(int op, int r, int l, int m);
 
 extern int halt;
 
