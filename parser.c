@@ -14,6 +14,7 @@
 lexeme lexemeList[MAX_SYMBOL_TABLE_SIZE];
 symbol symbolTable[MAX_SYMBOL_TABLE_SIZE];
 instruction code[MAX_CODE_LENGTH];
+int registers[REG];
 int table = 0;
 int level = -1;
 int ident;
