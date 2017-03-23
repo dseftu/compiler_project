@@ -11,6 +11,7 @@
     #define MAX_IDENTIFIER_LENGTH 11
     #define MAX_NUMBER_LENGTH 5
     #define MAX_SYMBOL_TABLE_SIZE 100
+    #define MAX_CODE_LENGTH 500
 
     #define nulsym 1
     #define identsym 2

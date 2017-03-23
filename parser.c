@@ -13,6 +13,7 @@
 
 lexeme lexemeList[MAX_SYMBOL_TABLE_SIZE];
 symbol symbolTable[MAX_SYMBOL_TABLE_SIZE];
+instruction code[MAX_CODE_LENGTH];
 int table = 0;
 int level = -1;
 int ident;
@@ -74,6 +75,11 @@ void buildTestObjectCode()
 	genCode(RTN, 0, 0, 0);
 }
 
+void initcode()
+{
+	
+}
+
 // Exist function for checking if symbol is already in table
 int exist(symbol s)
 {
@@ -110,6 +116,7 @@ void program()
 		error(MISSINGPERIOD);
 	if (halt == TRUE) exit(0);
 	printf("No errors, program is syntactically correct.\n\n");
+
 }
 
 void block()
