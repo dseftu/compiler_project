@@ -78,7 +78,14 @@ void buildTestObjectCode()
 
 void initcode()
 {
-	
+	int i;
+	for(i = 0; i < MAX_CODE_LENGTH; i++)
+	{
+		code[i].op = 0;
+		code[i].r = 0;
+		code[i].l = 0;
+		code[i].m = 0;
+	}
 }
 
 // Exist function for checking if symbol is already in table
@@ -103,9 +110,18 @@ int enter(symbol s)
 } 
 
 // finds a symbol by name
+// returns location of symbol in table if found
+// returns -1 if not founds 
 int find(char* name)
 {
 	//TODO this
+	int i;
+	for(i = 0; i < symbolTableIndex; i++)
+	{
+		if(strcmp(symbolTable[i].name, name) == 0)
+			return i;
+	}
+	return -1;
 
 }
 
