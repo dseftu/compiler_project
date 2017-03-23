@@ -78,7 +78,16 @@ void buildTestObjectCode()
 
 void initcode()
 {
-	
+	int i;
+	for(i = 0; i < MAX_CODE_LENGTH; i++)
+	{
+		code[i].op = 0;
+		code[i].r = 0;
+		code[i].l = 0;
+		code[i].m = 0;
+		//test
+	}
+
 }
 
 // Exist function for checking if symbol is already in table
@@ -111,6 +120,7 @@ int find(char* name)
 
 void program()
 {
+	initcode();
 	getToken();
 	block();
 	if (*token != periodsym)
