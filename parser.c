@@ -87,6 +87,7 @@ void initcode()
 		code[i].m = 0;
 		//test
 	}
+
 }
 
 // Exist function for checking if symbol is already in table
