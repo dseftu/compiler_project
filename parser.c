@@ -85,6 +85,7 @@ void initcode()
 		code[i].r = 0;
 		code[i].l = 0;
 		code[i].m = 0;
+		//test
 	}
 }
 
