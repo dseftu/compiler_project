@@ -22,7 +22,8 @@ int procadd = 0;
 extern int halt;
 
 int symbolTableIndex = 0;
-
+int codeIndex = 0;
+int regIndex = 0;
 // max index of the lexemeList.  When getToken() is called
 // the index is checked against this to ensure we don't go off the wheels
 int maxIndex = -1;
@@ -44,12 +45,13 @@ void parse(lexeme* _lexemeList, int _maxIndex)
 	program();
 
 	// TODO: Remove this once real object code is being generated
-	buildTestObjectCode();
+	//buildTestObjectCode();
 }
 
 // TODO: Remove this once real object code is being generated
 // this is builds an example object code since we don't have that implemented
 // in the parser yet
+/*
 void buildTestObjectCode()
 {
     genCode(INC, 0, 0, 6);
@@ -75,7 +77,7 @@ void buildTestObjectCode()
 	genCode(SIO_O, 0, 0, 1);
 	genCode(RTN, 0, 0, 0);
 }
-
+*/
 void initcode()
 {
 	int i;
@@ -133,6 +135,12 @@ void program()
 		error(MISSINGPERIOD);
 	if (halt == TRUE) exit(0);
 	printf("No errors, program is syntactically correct.\n\n");
+	emit(SIO_E, 0, 0, 3); // End of the program
+	int i;
+	for(i = 0; i < codeIndex; i++)
+	{
+		genCode(code[i].op, code[i].r, code[i].l, code[i].m);
+	}
 
 }
 
@@ -141,7 +149,6 @@ void block()
 	int var = 0, cons = 0, proc = 0;
 	level++;
 	procadd++;
-
 	// This if statement handles constants
 	if(*token == constsym)
 	{
@@ -289,7 +296,9 @@ void statement()
 
 		getToken();
 		expression();
-
+		// not to sure about this?
+		emit(STO, registers[regIndex], symbolTable[symbolTableIndex].level, symbolTable[symbolTableIndex].addr);
+		regIndex++;
 		// TODO CHECK FOR ASSIGNMENT TO CONSTANT?
 	}
 
@@ -464,7 +473,6 @@ void condition()
 		if (*token < eqlsym || *token > geqsym)
 			error(MISSINGRELATIONALOPERATOR);
 		if (halt == TRUE) exit(0);
-
 		getToken();
 		expression();
 	}
@@ -551,4 +559,13 @@ int type(char* str)
 			return procsym;
 	}
 	return 0;
+}
+
+void emit(int op, int r, int l, int m)
+{
+	code[codeIndex].op = op;
+	code[codeIndex].r = r;
+	code[codeIndex].l = l;
+	code[codeIndex].m = m;
+	codeIndex++;
 }
