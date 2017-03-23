@@ -16,6 +16,7 @@ void expression();
 void term();
 void factor();
 int type();
+void initcode();
 
 extern int halt;
 
