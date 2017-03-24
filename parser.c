@@ -303,6 +303,7 @@ void statement()
 	// Call
 	else if(*token == callsym)
 	{
+		// throws error because we are not implementing call
 		error(NOTIMPLEMENTEDCALL);
 		/*
 		getToken();
