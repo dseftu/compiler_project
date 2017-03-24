@@ -188,7 +188,7 @@ void block()
 			if (enter(newSymbol) == FALSE)
 				error(-1); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
-
+			emit(STO, regIndex++, 0, *token); // Puts constant in register
 			getToken();
 		}
 		while(*token == commasym); // continue checking for consts if comma 
@@ -226,7 +226,7 @@ void block()
 				error(-1); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
 
-			
+
 			getToken();
 		}
 		while(*token == commasym);
@@ -293,12 +293,10 @@ void statement()
 		if(*token != becomessym)
 			error(MISSINGOPERATOR);
 		if (halt == TRUE) exit(0);
-
-		getToken();
+	
+		getToken(); // varabile value
 		expression();
-		// not to sure about this?
-		emit(STO, registers[regIndex], symbolTable[symbolTableIndex].level, symbolTable[symbolTableIndex].addr);
-		regIndex++;
+		
 		// TODO CHECK FOR ASSIGNMENT TO CONSTANT?
 	}
 
@@ -389,23 +387,27 @@ void statement()
 	// while
 	else if(*token == whilesym)
 	{
+		add1 = codeIndex; // saves address to jump to check condition for while
 		getToken();
 		condition();
+		add2 = codeIndex; // saves address for inside the while loop
+		emit(JPC, 0, 0, 0);
 		// do exepected
 		if(*token != dosym)
 			error(MISSINGDO);
 		if (halt == TRUE) exit(0);
 		getToken();
 		statement();
-
-		/* not sure if we need this
+		emit(JMP, 0, 0, add1);
+		
 		// ; missing
-		if(strcmp(str, semicolonsym) != 0)
+		if(*token !=  semicolonsym)
 			error(MISSINGSEMICOLON);
-		*/
+		// loop finishes get address for next line
+		code[add2].m = codeIndex;
 	}
 
-/* TODO implement read/write
+//TODO implement read/write
 	// read
 	else if(*token == readsym)
 	{
@@ -414,7 +416,6 @@ void statement()
 		if(*token != identsym)
 			error(TOOLARGENUMBER);
 		getToken();
-
 
 		j = type();
 		// can't assign to a const or proc
@@ -425,13 +426,15 @@ void statement()
 			error(UNDECLAREDIDENT);
 		for(i = 0; i < table; i++)
 		{
-			if(strcmp(str, lexemeList[i].name) == 0)
+			if(*token == lexemeList[i].val)
 				ident = i;
 		}
-
+		emit(SIO_I, 0, 0, 2);
+		emit(STO, regIndex, 0, symbolTable[ident].val);
+		regIndex++;
 		getToken();
 		// ; missing
-		if(strcmp(str, semicolonsym) != 0)
+		if(*token != semicolonsym)
 			error(MISSINGSEMICOLON);
 	}
 
@@ -439,20 +442,20 @@ void statement()
 	else if(*token == writesym)
 	{
 		getToken();
-		if(strcmp(str, identsym) != 0)
+		if(*token != identsym)
 			error(TOOLARGENUMBER);
 		getToken();
 		j = type();
 		// undeclared identifier
 		if(j > 3 || j < 1)
 			error(UNDECLAREDIDENT);
+		emit(LOD, regIndex, 0, symbolTable[ident].val);
+		emit(SIO_O, regIndex, 0, 1);
 		getToken();
 		// ; missing
-		if(strcmp(str, semicolonsym) != 0)
+		if(*token != semicolonsym)
 			error(MISSINGSEMICOLON);
 	}
-
-*/
 }
 
 
@@ -482,10 +485,16 @@ void condition()
 void expression()
 {
 	if ( (*token == plussym) || (*token == minussym) )
+	{
 		getToken();
+	}
 	term();
 	while ( (*token == plussym) || (*token == minussym) )
-	{
+	{	
+		if(*token == plussym)
+			emit(ADD, registers[regIndex], registers[regIndex], registers[regIndex-1]);
+		if(*token == minussym)
+			emit(SUB, registers[regIndex], registers[regIndex], registers[regIndex-1]);
 		getToken();
 		term();
 	}
@@ -499,6 +508,11 @@ void term()
 	{
 		getToken();
 		factor();
+
+		if(*token == multsym)
+			emit(MUL, regIndex, regIndex, regIndex-1);
+		if(*token == slashsym)
+			emit(DIV, regIndex, regIndex, regIndex-1);
 	}
 }
 
