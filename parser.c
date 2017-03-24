@@ -303,6 +303,8 @@ void statement()
 	// Call
 	else if(*token == callsym)
 	{
+		error(NOTIMPLEMENTEDCALL);
+		/*
 		getToken();
 		// call must be followed by an identifier
 		if(*token != identsym)
