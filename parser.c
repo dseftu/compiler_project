@@ -188,7 +188,8 @@ void block()
 			if (enter(newSymbol) == FALSE)
 				error(-1); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
-			emit(STO, regIndex++, 0, *token); // Puts constant in register
+			emit(STO, regIndex, 0, *token); // Puts constant in register
+			regIndex++;
 			getToken();
 		}
 		while(*token == commasym); // continue checking for consts if comma 
@@ -283,9 +284,10 @@ void block()
 // TODO
 void statement()
 {
-	int i, j, add1, add2;
+	int i, j, add1, add2, add3, add4;
 
 	// identifier
+	// Assigning value to variables
 	if(*token == identsym)
 	{
 		getToken();
@@ -294,10 +296,15 @@ void statement()
 			error(MISSINGOPERATOR);
 		if (halt == TRUE) exit(0);
 	
-		getToken(); // varabile value
+		getToken(); // variable value
+		registers[regIndex] = *token;
+		emit(STO, regIndex, 0, *token);
+		regIndex++;
 		expression();
 		
 		// TODO CHECK FOR ASSIGNMENT TO CONSTANT?
+
+
 	}
 
 	// Call
@@ -364,6 +371,7 @@ void statement()
 			error(MISSINGTHENAFTERIF);
 		if (halt == TRUE) exit(0);
 		getToken();
+		add3 = codeIndex;
 		statement();
 
 		/* Might not need this
@@ -454,6 +462,7 @@ void statement()
 			error(UNDECLAREDIDENT);
 		emit(LOD, regIndex, 0, symbolTable[ident].val);
 		emit(SIO_O, regIndex, 0, 1);
+		regIndex--;
 		getToken();
 		// ; missing
 		if(*token != semicolonsym)
@@ -472,6 +481,7 @@ void condition()
 	{
 		getToken();
 		expression();
+
 	}
 	else
 	{
@@ -495,9 +505,9 @@ void expression()
 	while ( (*token == plussym) || (*token == minussym) )
 	{	
 		if(*token == plussym)
-			emit(ADD, registers[regIndex], registers[regIndex], registers[regIndex-1]);
+			emit(ADD, regIndex-1, regIndex-1, regIndex-2);
 		if(*token == minussym)
-			emit(SUB, registers[regIndex], registers[regIndex], registers[regIndex-1]);
+			emit(SUB, regIndex-1, regIndex-1, regIndex-2);
 		getToken();
 		term();
 	}
@@ -511,7 +521,6 @@ void term()
 	{
 		getToken();
 		factor();
-
 		if(*token == multsym)
 			emit(MUL, regIndex, regIndex, regIndex-1);
 		if(*token == slashsym)
@@ -526,8 +535,8 @@ void factor()
 	// identifier
 	if(*token == identsym)
 	{
-		getToken();
 
+		getToken();
 		/*
 		j = type();
 		// expression can't contain a procedure ident
