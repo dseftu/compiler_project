@@ -431,7 +431,7 @@ void statement()
 		}
 		emit(SIO_I, 0, 0, 2);
 		emit(STO, regIndex, 0, symbolTable[ident].val);
-		regIndex++;
+		regIndex--;
 		getToken();
 		// ; missing
 		if(*token != semicolonsym)
