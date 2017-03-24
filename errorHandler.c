@@ -161,11 +161,6 @@ void error(int errorCode)
             printf("%s\n", TOOMANYINPUTARGUMENTSMSG);
             return;
         }
-        case NOTIMPLEMENTEDCALL:
-        {
-            printf("%s\n", NOTIMPLEMENTEDCALLMSG);
-            return;
-        }
         default:
         {
             printf("%s\n", "UNKNOWN ERROR CODE");
