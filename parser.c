@@ -30,11 +30,15 @@ int maxIndex = -1;
 
 // the current token
 int* token;
+int id; 
 
 void getToken()
 {
 	// ensure that we aren't over the maxIndex
-	token = &lexemeList[table++].kind;
+	token = &lexemeList[table].kind;
+	if(*token == 3)
+		id = lexemeList[table].val;
+	table++;
 }
 
 void parse(lexeme* _lexemeList, int _maxIndex)
@@ -146,7 +150,7 @@ void program()
 
 void block()
 {
-	int var = 0, cons = 0, proc = 0;
+	int var = 4, cons = 0, proc = 0;
 	level++;
 	procadd++;
 	// This if statement handles constants
@@ -276,8 +280,9 @@ void block()
 		if (halt == TRUE) exit(0);
 		getToken();
 	}
-
+	emit(INC, 0, 0, var);
 	statement();
+	//emit(RTN, 0, 0, 0);
 	level--;
 }
 
@@ -297,8 +302,8 @@ void statement()
 		if (halt == TRUE) exit(0);
 	
 		getToken(); // variable value
-		registers[regIndex] = *token;
-		emit(STO, regIndex, 0, *token);
+		registers[regIndex] = id;
+		emit(STO, regIndex, 0, id);
 		regIndex++;
 		expression();
 		
@@ -418,7 +423,6 @@ void statement()
 		code[add2].m = codeIndex;
 	}
 
-//TODO implement read/write
 	// read
 	else if(*token == readsym)
 	{
@@ -481,7 +485,7 @@ void condition()
 	{
 		getToken();
 		expression();
-
+		emit(ODD, regIndex-1, regIndex-1, regIndex-2);
 	}
 	else
 	{
@@ -491,6 +495,7 @@ void condition()
 		if (halt == TRUE) exit(0);
 		getToken();
 		expression();
+		emit(*token, regIndex-1, regIndex-1, regIndex-2);
 	}
 }
 
@@ -499,17 +504,29 @@ void expression()
 {
 	if ( (*token == plussym) || (*token == minussym) )
 	{
+		if(*token == minussym)
+			emit(NEG, regIndex-1, 0, 0);
 		getToken();
 	}
 	term();
 	while ( (*token == plussym) || (*token == minussym) )
 	{	
 		if(*token == plussym)
+		{
+			getToken();
+			term();
+			emit(LOD, regIndex++, 0, 5);
+			emit(LOD, regIndex++, 0, 6);
 			emit(ADD, regIndex-1, regIndex-1, regIndex-2);
+		}
 		if(*token == minussym)
+		{
+			getToken();
+			term();
+			emit(LOD, regIndex++, 0, 5);
+			emit(LOD, regIndex++, 0, 6);
 			emit(SUB, regIndex-1, regIndex-1, regIndex-2);
-		getToken();
-		term();
+		}
 	}
 }
 
@@ -522,9 +539,18 @@ void term()
 		getToken();
 		factor();
 		if(*token == multsym)
+		{
+			emit(LOD, regIndex++, 0, 5);
+			emit(LOD, regIndex++, 0, 6);
+			emit(MUL, regIndex, regIndex, regIndex-1);
+		}
 			emit(MUL, regIndex, regIndex, regIndex-1);
 		if(*token == slashsym)
+		{
+			emit(LOD, regIndex++, 0, 5);
+			emit(LOD, regIndex++, 0, 6);
 			emit(DIV, regIndex, regIndex, regIndex-1);
+		}
 	}
 }
 
@@ -552,6 +578,7 @@ void factor()
 	else if(*token == numbersym)
 	{
 		getToken(); // number retrieved
+		emit(LIT, 0, 0, id); // number loaded into stack
 	}
 	else if(*token == lparentsym)
 	{
