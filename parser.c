@@ -20,6 +20,7 @@ int level = -1;
 int ident;
 int procadd = 0;
 extern int halt;
+int sp = 0;
 
 int symbolTableIndex = 0;
 int codeIndex = 0;
@@ -153,6 +154,8 @@ void block()
 	int var = 4, cons = 0, proc = 0;
 	level++;
 	procadd++;
+	//emit(LIT, 1, 0, 7);
+	//emit(STO, 1, 0, 0);
 	// This if statement handles constants
 	if(*token == constsym)
 	{
@@ -192,7 +195,8 @@ void block()
 			if (enter(newSymbol) == FALSE)
 				error(-1); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
-			emit(STO, regIndex, 0, *token); // Puts constant in register
+			emit(LIT, regIndex, 0, *token); // Puts constant in register
+			emit(STO, regIndex, 0, sp++);
 			regIndex++;
 			getToken();
 		}
@@ -303,7 +307,8 @@ void statement()
 	
 		getToken(); // variable value
 		registers[regIndex] = val;
-		emit(STO, regIndex, 0, val);
+		emit(LIT, regIndex, 0, val);
+		emit(STO, regIndex, 0, sp++);
 		regIndex++;
 		expression();
 		
@@ -445,7 +450,8 @@ void statement()
 				ident = i;
 		}
 		emit(SIO_I, 0, 0, 2);
-		emit(STO, regIndex, 0, symbolTable[ident].val);
+		emit(LIT, regIndex, 0, symbolTable[ident].val);
+		emit(STO, regIndex, 0, sp++);
 		regIndex++;
 		getToken();
 		// ; missing
@@ -515,17 +521,19 @@ void expression()
 		{
 			getToken();
 			term();
-			emit(LOD, regIndex++, 0, 5);
-			emit(LOD, regIndex++, 0, 6);
+			emit(LOD, regIndex++, 0, sp-1);
+			emit(LOD, regIndex++, 0, sp-2);
 			emit(ADD, regIndex-1, regIndex-1, regIndex-2);
+			emit(STO, regIndex-1, 0, sp);
 		}
 		if(*token == minussym)
 		{
 			getToken();
 			term();
-			emit(LOD, regIndex++, 0, 5);
-			emit(LOD, regIndex++, 0, 6);
+			emit(LOD, regIndex++, 0, sp-1);
+			emit(LOD, regIndex++, 0, sp-2);
 			emit(SUB, regIndex-1, regIndex-1, regIndex-2);
+			emit(STO, regIndex-1, 0, sp);
 		}
 	}
 }
@@ -543,13 +551,14 @@ void term()
 			emit(LOD, regIndex++, 0, 5);
 			emit(LOD, regIndex++, 0, 6);
 			emit(MUL, regIndex, regIndex, regIndex-1);
+			emit(STO, regIndex-1, 0, 7);
 		}
-			emit(MUL, regIndex, regIndex, regIndex-1);
 		if(*token == slashsym)
 		{
 			emit(LOD, regIndex++, 0, 5);
 			emit(LOD, regIndex++, 0, 6);
 			emit(DIV, regIndex, regIndex, regIndex-1);
+			emit(STO, regIndex-1, 0, 7);
 		}
 	}
 }
@@ -578,7 +587,9 @@ void factor()
 	else if(*token == numbersym)
 	{
 		getToken(); // number retrieved
-		emit(LIT, 0, 0, val); // number loaded into stack
+		emit(LIT, regIndex, 0, val); // number loaded into stack
+		emit(STO, regIndex++, 0, sp++);
+		
 	}
 	else if(*token == lparentsym)
 	{
