@@ -30,14 +30,14 @@ int maxIndex = -1;
 
 // the current token
 int* token;
-int id; 
+int val; 
 
 void getToken()
 {
 	// ensure that we aren't over the maxIndex
 	token = &lexemeList[table].kind;
-	if(*token == 3)
-		id = lexemeList[table].val;
+	if(*token == numbersym)
+		val = lexemeList[table].val;
 	table++;
 }
 
@@ -302,8 +302,8 @@ void statement()
 		if (halt == TRUE) exit(0);
 	
 		getToken(); // variable value
-		registers[regIndex] = id;
-		emit(STO, regIndex, 0, id);
+		registers[regIndex] = val;
+		emit(STO, regIndex, 0, val);
 		regIndex++;
 		expression();
 		
@@ -578,7 +578,7 @@ void factor()
 	else if(*token == numbersym)
 	{
 		getToken(); // number retrieved
-		emit(LIT, 0, 0, id); // number loaded into stack
+		emit(LIT, 0, 0, val); // number loaded into stack
 	}
 	else if(*token == lparentsym)
 	{
