@@ -1,0 +1,7 @@
+/* Invalid start of factor */
+const g = 3;
+var x, y;
+begin
+	y := 3;
+	x := % y + 56;
+end

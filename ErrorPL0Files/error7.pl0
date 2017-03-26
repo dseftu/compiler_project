@@ -1,0 +1,8 @@
+/* Call not implemented */
+const g = 3;
+var x, y;
+begin
+call something;
+	y := 3;
+	x := y + 56;
+end.
