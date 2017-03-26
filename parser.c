@@ -154,8 +154,6 @@ void block()
 	int var = 4, cons = 0, proc = 0;
 	level++;
 	procadd++;
-	//emit(LIT, 1, 0, 7);
-	//emit(STO, 1, 0, 0);
 	// This if statement handles constants
 	if(*token == constsym)
 	{
@@ -549,17 +547,17 @@ void term()
 		factor();
 		if(*token == multsym)
 		{
-			emit(LOD, regIndex++, 0, 5);
-			emit(LOD, regIndex++, 0, 6);
+			emit(LOD, regIndex++, 0, sp-1);
+			emit(LOD, regIndex++, 0, sp-2);
 			emit(MUL, regIndex, regIndex, regIndex-1);
-			emit(STO, regIndex-1, 0, 7);
+			emit(STO, regIndex-1, 0, sp++);
 		}
 		if(*token == slashsym)
 		{
-			emit(LOD, regIndex++, 0, 5);
-			emit(LOD, regIndex++, 0, 6);
+			emit(LOD, regIndex++, 0, sp-1);
+			emit(LOD, regIndex++, 0, sp-2);
 			emit(DIV, regIndex, regIndex, regIndex-1);
-			emit(STO, regIndex-1, 0, 7);
+			emit(STO, regIndex-1, 0, sp-3);
 		}
 	}
 }
