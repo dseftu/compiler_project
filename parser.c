@@ -284,7 +284,7 @@ void block()
 		if (halt == TRUE) exit(0);
 		getToken();
 	}
-	emit(INC, 0, 0, var);
+	emit(INC, 0, 0, var+1);
 	statement();
 	//emit(RTN, 0, 0, 0);
 	level--;
@@ -524,7 +524,7 @@ void expression()
 			emit(LOD, regIndex++, 0, sp-1);
 			emit(LOD, regIndex++, 0, sp-2);
 			emit(ADD, regIndex-1, regIndex-1, regIndex-2);
-			emit(STO, regIndex-1, 0, sp);
+			emit(STO, regIndex-1, 0, sp++);
 		}
 		if(*token == minussym)
 		{
@@ -533,7 +533,7 @@ void expression()
 			emit(LOD, regIndex++, 0, sp-1);
 			emit(LOD, regIndex++, 0, sp-2);
 			emit(SUB, regIndex-1, regIndex-1, regIndex-2);
-			emit(STO, regIndex-1, 0, sp);
+			emit(STO, regIndex-1, 0, sp++);
 		}
 	}
 }
