@@ -382,6 +382,7 @@ void statement()
 		if (halt == TRUE) exit(0);
 		getToken();
 		add3 = codeIndex;
+		emit(JPC, 0, 0, 0);
 		statement();
 
 		/* Might not need this
