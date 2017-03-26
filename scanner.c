@@ -409,7 +409,7 @@ void printLexemeTable(lexeme* lexemeList, int maxIndex)
 void printLexemeList(lexeme* lexemeList, int maxIndex)
 {
     // header
-    printf("Lexeme List:\n");
+    printf("\nLexeme List:\n");
 
     // iterate through the table, printing the name and token value
     int i = 0;

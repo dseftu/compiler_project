@@ -1,0 +1,9 @@
+/* Undeclared ident */
+const g = 3;
+var x, y;
+begin
+	y := 3;
+	x2 := y + 56;
+	/* removing period on this so it doesn't compile.  At the time
+	of writing this, this error code did not get correctly thrown*/
+end
