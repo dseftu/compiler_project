@@ -388,19 +388,9 @@ void statement()
 			error(MISSINGSEMICOLON);
 		getToken()
 		*/
-		
-		/* else not implemented in this version
 		if(*token == elsesym)
-		{
-			getToken();
-			statement();
-			// ; mising
-			if(*token != semicolonsym)
-				error(MISSINGSEMICOLON);
-		}
-		else
-			//fseek(lex, -(strlen(str) + 1), SEEK_CUR);
-		*/
+			error(NOTIMPLEMENTEDELSE);
+		
 	}
 
 	// while

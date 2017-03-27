@@ -35,5 +35,7 @@ const char* INVALIDINPUTARGUMENTSMSG = "Invalid input arguments detected.\n\nExp
 const char* MISSINGINPUTARGUMENTSMSG = "Missing input arguments.\n\nExpected:  compiler [-l] [-a] [-v] inputfile\n\ninputfile\tThe PL/0 file to be compiled\n-l\tPrints the list of lexemes\n-a\tPrints the object code\n-v\tPrints the VM execution trace";
 const char* TOOMANYINPUTARGUMENTSMSG = "Too many input arguments.\n\nExpected:  compiler [-l] [-a] [-v] inputfile\n\ninputfile\tThe PL/0 file to be compiled\n-l\tPrints the list of lexemes\n-a\tPrints the object code\n-v\tPrints the VM execution trace";
 const char* NOTIMPLEMENTEDCALLMSG = "Not Implementing CALL.\n";
+const char* NOTIMPLEMENTEDELSEMSG = "Not Implementing Else.\n";
+
 // prints the error for the specific error code.
 void error(int errorCode);

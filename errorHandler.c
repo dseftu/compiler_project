@@ -166,6 +166,11 @@ void error(int errorCode)
             printf("%s\n", NOTIMPLEMENTEDCALLMSG);
             return;
         }
+        case NOTIMPLEMENTEDELSE:
+        {
+            printf("%s\n", NOTIMPLEMENTEDELSEMSG);
+            return;
+        }
         default:
         {
             printf("%s\n", "UNKNOWN ERROR CODE");
