@@ -31,8 +31,7 @@ int maxIndex = -1;
 
 // the current token
 int* token;
-int val;
-char id[12]; 
+int val; 
 
 void getToken()
 {
@@ -40,8 +39,6 @@ void getToken()
 	token = &lexemeList[table].kind;
 	if(*token == numbersym)
 		val = lexemeList[table].val;
-	if(*token == varsym)
-		strcpy(id, lexemeList[table].name);
 	table++;
 }
 
@@ -436,7 +433,7 @@ void statement()
 		getToken();
 		// needs to be identifier
 		if(*token != identsym)
-			error(MISSINGIDENTIFIER);
+			error(TOOLARGENUMBER);
 		getToken();
 
 		j = type();
@@ -446,15 +443,11 @@ void statement()
 		// undeclared ident
 		else if(j != 2)
 			error(UNDECLAREDIDENT);
-		ident = -1;
 		for(i = 0; i < table; i++)
 		{
 			if(*token == lexemeList[i].val)
 				ident = i;
 		}
-		// If it isn't in the symbol table throw error
-		if(ident == -1)
-			error(UNDECLAREDIDENT);
 		emit(SIO_I, 0, 0, 2);
 		emit(LIT, regIndex, 0, symbolTable[ident].val);
 		emit(STO, regIndex, 0, sp++);
@@ -475,15 +468,6 @@ void statement()
 		j = type();
 		// undeclared identifier
 		if(j > 3 || j < 1)
-			error(UNDECLAREDIDENT);
-		ident = -1;
-		for(i = 0; i < table; i++)
-		{
-			if(*token == lexemeList[i].val)
-				ident = i;
-		}
-		// If it isn't in the symbol table throw error
-		if(ident == -1)
 			error(UNDECLAREDIDENT);
 		emit(LOD, regIndex, 0, symbolTable[ident].val);
 		emit(SIO_O, regIndex, 0, 1);
@@ -565,15 +549,15 @@ void term()
 		{
 			emit(LOD, regIndex++, 0, sp-1);
 			emit(LOD, regIndex++, 0, sp-2);
-			emit(MUL, regIndex-1, regIndex-1, regIndex-2);
+			emit(MUL, regIndex, regIndex, regIndex-1);
 			emit(STO, regIndex-1, 0, sp++);
 		}
 		if(*token == slashsym)
 		{
 			emit(LOD, regIndex++, 0, sp-1);
 			emit(LOD, regIndex++, 0, sp-2);
-			emit(DIV, regIndex-1, regIndex-1, regIndex-2);
-			emit(STO, regIndex-1, 0, sp++);
+			emit(DIV, regIndex, regIndex, regIndex-1);
+			emit(STO, regIndex-1, 0, sp-3);
 		}
 	}
 }
