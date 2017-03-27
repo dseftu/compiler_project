@@ -191,7 +191,7 @@ void block()
 				error(CONSTASSIGNMENTMISSING);
 			if (halt == TRUE) exit(0);
 
-			newSymbol.val = *token; // grab the const value
+			newSymbol.val = val; // grab the const value
 
 			if (enter(newSymbol) == FALSE)
 				error(-1); // TODO does this need an error here?
