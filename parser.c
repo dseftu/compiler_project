@@ -288,7 +288,6 @@ void block()
 	level--;
 }
 
-// TODO
 void statement()
 {
 	int i, j, add1, add2, add3, add4;
@@ -430,55 +429,34 @@ void statement()
 	// read
 	else if(*token == readsym)
 	{
-		getToken();
-		for(i = 0; i < table; i++)
-		{
-			if(*token == lexemeList[i].val);
-				ident = i;
-		}
+		getToken();	
+		ident = find(lexemeList[table-1].name);
+		if(ident == -1)
+			error(UNDECLAREDIDENT);
+		if(halt == TRUE) exit(0);
+		emit(SIO_I, registers[regIndex], 0, 2);
+		emit(LIT, registers[regIndex], 0, symbolTable[ident].addr);
+		emit(STO, regIndex, 0, sp++);
 		regIndex++;
+
 	}
 
 	// Write
 	else if(*token == writesym)
 	{
 		getToken();
-		expression();
-		ident = -1;
-		for(i = 0; i < table; i++)
-		{
-			if(*token == lexemeList[i].val);
-				ident = i;
-		}
-		registers[regIndex] = symbolTable[ident].val;
-		emit(LOD, registers[regIndex], 0, symbolTable[ident].val);
-		emit(SIO_O,registers[regIndex], 0, sp++);
-		regIndex++;
-
-		/*
-		if(*token != identsym)
-			error(TOOLARGENUMBER);
-		getToken();
-		j = type();
-		// undeclared identifier
-		if(j > 3 || j < 1)
+		ident = find(lexemeList[table-1].name);
+		if(ident == -1)
 			error(UNDECLAREDIDENT);
-		emit(LOD, regIndex, 0, symbolTable[ident].val);
-		emit(SIO_O, regIndex, 0, 1);
-		regIndex--;
+		if(halt == TRUE) exit(0);
+		emit(LOD, registers[regIndex], 0, symbolTable[ident].addr);
+		emit(SIO_O, registers[regIndex], 0, 1);
+		regIndex++;
 		getToken();
-		// ; missing
-		if(*token != semicolonsym)
-			error(MISSINGSEMICOLON);
-	}
-	*/
 	}
 }
 
 
-
-
-// TODO
 void condition()
 {
 	int op;
@@ -500,7 +478,6 @@ void condition()
 	}
 }
 
-// TODO
 void expression()
 {
 	if ( (*token == plussym) || (*token == minussym) )
@@ -533,7 +510,6 @@ void expression()
 	}
 }
 
-// TODO
 void term()
 {
 	factor();
@@ -558,7 +534,6 @@ void term()
 	}
 }
 
-// TODO
 void factor()
 {
 	int i, j;
