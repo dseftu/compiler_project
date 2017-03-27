@@ -6,7 +6,6 @@
 #define FALSE 0
 
 const char* BADCONSTASSIGNMENTSYMBOLMSG = "Use = instead of :=.";
-
 const char* CONSTASSIGNMENTMISSINGMSG = "= must be followed by a number.";
 const char* MISSINGCONSTASSIGNMENTSYMBOLMSG = "Identifier must be followed by =.";
 const char* MISSINGIDENTIFIERMSG = "const, var, procedure must be followed by identifier.";
@@ -36,6 +35,7 @@ const char* MISSINGINPUTARGUMENTSMSG = "Missing input arguments.\n\nExpected:  c
 const char* TOOMANYINPUTARGUMENTSMSG = "Too many input arguments.\n\nExpected:  compiler [-l] [-a] [-v] inputfile\n\ninputfile\tThe PL/0 file to be compiled\n-l\tPrints the list of lexemes\n-a\tPrints the object code\n-v\tPrints the VM execution trace";
 const char* NOTIMPLEMENTEDCALLMSG = "Not Implementing CALL.\n";
 const char* NOTIMPLEMENTEDELSEMSG = "Not Implementing Else.\n";
+const char* NOTIMPLEMENTEDMSG = "Attempted to use a token that is not implemented!\n";
 
 // prints the error for the specific error code.
 void error(int errorCode);

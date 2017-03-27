@@ -20,7 +20,7 @@ int level = -1;
 int ident;
 int procadd = 0;
 extern int halt;
-int sp = 0;
+int sp = 4;
 
 int symbolTableIndex = 0;
 int codeIndex = 0;
@@ -49,40 +49,8 @@ void parse(lexeme* _lexemeList, int _maxIndex)
 	maxIndex = _maxIndex;
 	program();
 
-	// TODO: Remove this once real object code is being generated
-	//buildTestObjectCode();
 }
 
-// TODO: Remove this once real object code is being generated
-// this is builds an example object code since we don't have that implemented
-// in the parser yet
-/*
-void buildTestObjectCode()
-{
-    genCode(INC, 0, 0, 6);
-	genCode(LIT, 0, 0, 6);
-	genCode(STO, 0, 0, 4);
-	genCode(LOD, 0, 0, 4);
-	genCode(LIT, 1, 0, 0);
-	genCode(GTR, 0, 0, 1);
-	genCode(JPC, 0, 0, 17);
-	genCode(LOD, 0, 0, 4);
-	genCode(MUL, 0, 0, 0);
-	genCode(STO, 0, 0, 5);
-	genCode(LOD, 0, 0, 4);
-	genCode(LIT, 1, 0, 1);
-	genCode(SUB, 0, 0, 1);
-	genCode(STO, 0, 0, 4);
-	genCode(LOD, 0, 0, 5);
-	genCode(SIO_O, 0, 0, 1);
-	genCode(JMP, 0, 0, 3);
-	genCode(LOD, 0, 0, 4);
-	genCode(SIO_O, 0, 0, 1);
-	genCode(LOD, 0, 0, 5);
-	genCode(SIO_O, 0, 0, 1);
-	genCode(RTN, 0, 0, 0);
-}
-*/
 void initcode()
 {
 	int i;
@@ -121,7 +89,6 @@ int enter(symbol s)
 // returns -1 if not founds 
 int find(char* name)
 {
-	//TODO this
 	int i;
 	for(i = 0; i < symbolTableIndex; i++)
 	{
@@ -129,12 +96,12 @@ int find(char* name)
 			return i;
 	}
 	return -1;
-
 }
-
+int cons = 0, proc = 0;
 void program()
 {
 	getToken();
+	emit(INC, 0, 0, sp);
 	block();
 	if (*token != periodsym)
 		error(MISSINGPERIOD);
@@ -149,9 +116,9 @@ void program()
 
 }
 
+
 void block()
-{
-	int var = 4, cons = 0, proc = 0;
+{	
 	level++;
 	procadd++;
 	// This if statement handles constants
@@ -161,17 +128,16 @@ void block()
 		{
 			getToken();
 
-			// create the newSymbol object
-			symbol newSymbol;
-			newSymbol.kind = constsym;
-			newSymbol.addr = 4+var;
-			var++;
-			newSymbol.level = level;
-
 			// constant must be followed by ident
 			if(*token != identsym)
 				error(MISSINGIDENTIFIER);
 			if (halt == TRUE) exit(0);
+
+			// create the newSymbol object
+			symbol newSymbol;
+			newSymbol.kind = constsym;
+			newSymbol.addr = sp;
+			newSymbol.level = level;			
 
 			// grab the symbol unique name;
 			strcpy(newSymbol.name, lexemeList[table-1].name);
@@ -189,14 +155,17 @@ void block()
 			if (halt == TRUE) exit(0);
 
 			newSymbol.val = val; // grab the const value
+			newSymbol.addr = sp;
 
+			// add symbol to symbol table
 			if (enter(newSymbol) == FALSE)
 				error(-1); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
-			emit(LIT, regIndex, 0, *token); // Puts constant in register
-			emit(STO, regIndex, 0, sp++);
-			regIndex++;
-			getToken();
+
+			emit(LIT, 0, 0, val); // Puts constant value in register (use reg 0 for this)
+			emit(STO, 0, 0, sp++); // store on stack and increment
+			emit(INC, 0, 0, 1); // increment the stack
+			getToken();			
 		}
 		while(*token == commasym); // continue checking for consts if comma 
 
@@ -217,24 +186,28 @@ void block()
 			// Varaible must be followed by an identifier
 			if(*token != identsym)
 				error(MISSINGIDENTIFIER);
+			if (halt == TRUE) exit(0);
 
 			// create the newSymbol object
 			symbol newSymbol;
 			newSymbol.kind = varsym;
+			newSymbol.addr = sp;
+			newSymbol.level = level;
 
 			// grab the symbol unique name;
 			strcpy(newSymbol.name, lexemeList[table-1].name);
-			newSymbol.addr = 4+var;
-			newSymbol.level = level;
-			newSymbol.val = 0; // default value for a new var
-			var++;
+			
+			newSymbol.val = 0; // default value for a new var			
 
+			// add symbol to symbol table
 			if (enter(newSymbol) == FALSE)
 				error(-1); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
 
-
-			getToken();
+			emit(LIT, 0, 0, 0); // Puts default value in register (use reg 0 for this)
+			emit(STO, 0, 0, sp++); // store on stack and increment
+			emit(INC, 0, 0, 1); // increment the stack
+			getToken();		
 		}
 		while(*token == commasym);
 
@@ -247,6 +220,9 @@ void block()
 	// Procedure Declaration
 	while(*token == procsym)
 	{
+		error(NOTIMPLEMENTED);
+		exit(0);
+		/*
 		// Procedure must be followed by an identifier
 		getToken();
 		if(*token != identsym)
@@ -281,10 +257,10 @@ void block()
 			error(MISSINGSEMICOLONORCOMMA);
 		if (halt == TRUE) exit(0);
 		getToken();
+		*/
 	}
-	emit(INC, 0, 0, var+1);
+	
 	statement();
-	//emit(RTN, 0, 0, 0);
 	level--;
 }
 
@@ -306,11 +282,11 @@ void statement()
 		registers[regIndex] = val;
 		emit(LIT, regIndex, 0, val);
 		emit(STO, regIndex, 0, sp++);
+		emit(INC, 0, 0, 1); // increment the stack
 		regIndex++;
 		expression();
 		
 		// TODO CHECK FOR ASSIGNMENT TO CONSTANT?
-
 
 	}
 
@@ -382,12 +358,6 @@ void statement()
 		emit(JPC, 0, 0, 0);
 		statement();
 
-		/* Might not need this
-		// ; missing
-		if(*token != semicolonsym)
-			error(MISSINGSEMICOLON);
-		getToken()
-		*/
 		if(*token == elsesym)
 			error(NOTIMPLEMENTEDELSE);
 		
@@ -412,6 +382,7 @@ void statement()
 		// ; missing
 		if(*token !=  semicolonsym)
 			error(MISSINGSEMICOLON);
+		if (halt == TRUE) exit(0);
 		// loop finishes get address for next line
 		code[add2].m = codeIndex;
 	}
@@ -424,11 +395,17 @@ void statement()
 		if(ident == -1)
 			error(UNDECLAREDIDENT);
 		if(halt == TRUE) exit(0);
-		emit(SIO_I, registers[regIndex], 0, 2);
-		emit(LIT, registers[regIndex], 0, symbolTable[ident].addr);
-		emit(STO, regIndex, 0, sp++);
-		regIndex++;
 
+		if (symbolTable[ident].kind != varsym)
+			error(INVALIDASSIGNMENT);
+		if (halt == TRUE) exit(0);
+
+		// read(R(0))
+		// store r(0) at addr
+		emit(SIO_I, 0, 0, 2);
+		emit(STO, 0, 0, symbolTable[ident].addr);
+		
+		getToken();	
 	}
 
 	// Write
@@ -439,9 +416,11 @@ void statement()
 		if(ident == -1)
 			error(UNDECLAREDIDENT);
 		if(halt == TRUE) exit(0);
-		emit(LOD, registers[regIndex], 0, symbolTable[ident].addr);
-		emit(SIO_O, registers[regIndex], 0, 1);
-		regIndex++;
+
+		// put stack addr in r0
+		// print r0
+		emit(LOD, 0, 0, symbolTable[ident].addr);
+		emit(SIO_O, 0, 0, 1);
 		getToken();
 	}
 }
