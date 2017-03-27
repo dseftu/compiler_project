@@ -92,7 +92,6 @@
         int val; 		// number (ASCII value)
         int level; 		// L  level
         int addr; 		// M  address
-        int regAdd;
     } symbol;
 
     typedef struct
