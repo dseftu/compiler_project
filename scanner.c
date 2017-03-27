@@ -126,14 +126,14 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
         // handle comment string
         int lastC = getc(fid);
         if (lastC == EOF) return; // unexpected end, but who cares
-        putchar(lastC);
+        //putchar(lastC);
 
         int commentsEnded = FALSE;
         while (!commentsEnded && !halt)
         {
             int c = getc(fid);
             if (c == EOF) return; // unexpected end, but who cares
-            putchar(c);
+            //putchar(c);
 
             if ((char)lastC == '*' && (char)c == '/') commentsEnded = TRUE;
             else lastC = c;
@@ -409,7 +409,7 @@ void printLexemeTable(lexeme* lexemeList, int maxIndex)
 void printLexemeList(lexeme* lexemeList, int maxIndex)
 {
     // header
-    printf("Lexeme List:\n");
+    printf("\nLexeme List:\n");
 
     // iterate through the table, printing the name and token value
     int i = 0;

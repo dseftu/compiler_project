@@ -1,0 +1,7 @@
+/* Missing operator */
+const g = 3;
+var x, y;
+begin
+	y = 5;
+	x := y + 56;
+end.
