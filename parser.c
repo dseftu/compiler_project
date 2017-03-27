@@ -188,7 +188,7 @@ void block()
 				error(CONSTASSIGNMENTMISSING);
 			if (halt == TRUE) exit(0);
 
-			newSymbol.val = *token; // grab the const value
+			newSymbol.val = val; // grab the const value
 
 			if (enter(newSymbol) == FALSE)
 				error(-1); // TODO does this need an error here?
@@ -431,37 +431,31 @@ void statement()
 	else if(*token == readsym)
 	{
 		getToken();
-		// needs to be identifier
-		if(*token != identsym)
-			error(TOOLARGENUMBER);
-		getToken();
-
-		j = type();
-		// can't assign to a const or proc
-		if(j == 1 || j == 3)
-			error(INVALIDASSIGNMENT);
-		// undeclared ident
-		else if(j != 2)
-			error(UNDECLAREDIDENT);
 		for(i = 0; i < table; i++)
 		{
-			if(*token == lexemeList[i].val)
+			if(*token == lexemeList[i].val);
 				ident = i;
 		}
-		emit(SIO_I, 0, 0, 2);
-		emit(LIT, regIndex, 0, symbolTable[ident].val);
-		emit(STO, regIndex, 0, sp++);
 		regIndex++;
-		getToken();
-		// ; missing
-		if(*token != semicolonsym)
-			error(MISSINGSEMICOLON);
 	}
 
 	// Write
 	else if(*token == writesym)
 	{
 		getToken();
+		expression();
+		ident = -1;
+		for(i = 0; i < table; i++)
+		{
+			if(*token == lexemeList[i].val);
+				ident = i;
+		}
+		registers[regIndex] = symbolTable[ident].val;
+		emit(LOD, registers[regIndex], 0, symbolTable[ident].val);
+		emit(SIO_O,registers[regIndex], 0, sp++);
+		regIndex++;
+
+		/*
 		if(*token != identsym)
 			error(TOOLARGENUMBER);
 		getToken();
@@ -476,6 +470,8 @@ void statement()
 		// ; missing
 		if(*token != semicolonsym)
 			error(MISSINGSEMICOLON);
+	}
+	*/
 	}
 }
 
