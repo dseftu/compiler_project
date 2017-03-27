@@ -20,7 +20,7 @@ int level = -1;
 int ident;
 int procadd = 0;
 extern int halt;
-int sp = 4;
+int sp = 3;
 
 int symbolTableIndex = 0;
 int codeIndex = 0;
@@ -222,42 +222,6 @@ void block()
 	{
 		error(NOTIMPLEMENTED);
 		exit(0);
-		/*
-		// Procedure must be followed by an identifier
-		getToken();
-		if(*token != identsym)
-			error(MISSINGIDENTIFIER);
-		if (halt == TRUE) exit(0);
-
-		// create the newSymbol object
-		symbol newSymbol;
-		newSymbol.kind = procsym;
-
-		// grab the symbol unique name;
-		strcpy(newSymbol.name, lexemeList[table-1].name);
-		newSymbol.addr = procadd;
-		newSymbol.level = level;
-		newSymbol.val = 0; // default value for a new var
-		proc++;
-
-		if (enter(newSymbol) == FALSE)
-			error(-1); // TODO does this need an error here?
-		if (halt == TRUE) exit(0);
-
-		getToken();
-
-		// ; expected
-		if(*token != semicolonsym)
-			error(MISSINGSEMICOLONORCOMMA);
-		if (halt == TRUE) exit(0);
-		getToken();
-		block();
-		// ; expected
-		if(*token != semicolonsym)
-			error(MISSINGSEMICOLONORCOMMA);
-		if (halt == TRUE) exit(0);
-		getToken();
-		*/
 	}
 	
 	statement();
@@ -273,7 +237,6 @@ void statement()
 	if(*token == identsym)
 	{
 		getToken();
-
 		if(*token != becomessym)
 			error(MISSINGOPERATOR);
 		if (halt == TRUE) exit(0);
@@ -285,7 +248,6 @@ void statement()
 		emit(INC, 0, 0, 1); // increment the stack
 		regIndex++;
 		expression();
-		
 		// TODO CHECK FOR ASSIGNMENT TO CONSTANT?
 
 	}
@@ -295,36 +257,6 @@ void statement()
 	{
 		// throws error because we are not implementing call
 		error(NOTIMPLEMENTEDCALL);
-		/*
-		getToken();
-		// call must be followed by an identifier
-		if(*token != identsym)
-			error(MISSINGIDENTAFTERCALL);
-		if (halt == TRUE) exit(0);
-		getToken();
-
-		// Procedure calling not implemented in this version
-
-		// TODO Check for valid call: 
-		/*
-		//checks type
-		j = type();
-		// call of a constant or variable meaningless
-		if(j == 1 || j == 2)
-			error(INVALIDCALL);
-		// undeclared identifier
-		else if(j != 3)
-			error(UNDECLAREDIDENT);
-		for(i = 0; i < table; i++)
-		{
-			if(strcmp(str, lexemeList[i].name) == 0)
-				ident = i;
-		}
-		getToken();
-		// ; missing
-		if(*token != semicolonsym)
-			error(MISSINGSEMICOLON);
-		*/
 	}
 
 	// Begin
@@ -511,6 +443,8 @@ void factor()
 	{
 
 		getToken();
+		emit(INC, 0, 0, 1);
+		
 		/*
 		j = type();
 		// expression can't contain a procedure ident
@@ -528,7 +462,7 @@ void factor()
 		getToken(); // number retrieved
 		emit(LIT, regIndex, 0, val); // number loaded into stack
 		emit(STO, regIndex++, 0, sp++);
-		
+		emit(INC, 0, 0, 1);
 	}
 	else if(*token == lparentsym)
 	{
