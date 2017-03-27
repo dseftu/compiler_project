@@ -14,6 +14,6 @@ echo	y := 3;
 echo	x := y + 56;
 echo end.
 echo.
-echo compiler.exe -l -a -v testProgram2.pl0
+echo compiler.exe -l -a -v .\GoodPL0Files\sample.pl0
 echo.
 compiler.exe -l -a -v .\GoodPL0Files\sample.pl0
