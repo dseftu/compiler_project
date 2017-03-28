@@ -1,6 +1,6 @@
-const g = 12, t = 30;
-var y, x;
+const g = 3;
+var x, y;
 begin
-	y := 5 + 2;
-	write y;
+	y := 3;
+	x := y + 56;
 end.
