@@ -1,6 +1,6 @@
-var y;
+const g = 12, t = 30;
+var y, x;
 begin
-	y := 5;
-	read y;
+	y := 5 + 2;
 	write y;
 end.

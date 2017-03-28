@@ -14,7 +14,6 @@
 lexeme lexemeList[MAX_SYMBOL_TABLE_SIZE];
 symbol symbolTable[MAX_SYMBOL_TABLE_SIZE];
 instruction code[MAX_CODE_LENGTH];
-int registers[REG];
 int table = 0;
 int level = -1;
 int ident;
@@ -48,7 +47,6 @@ void parse(lexeme* _lexemeList, int _maxIndex)
 	*lexemeList = *_lexemeList;
 	maxIndex = _maxIndex;
 	program();
-
 }
 
 void initcode()
@@ -97,6 +95,7 @@ int find(char* name)
 	}
 	return -1;
 }
+
 int cons = 0, proc = 0;
 void program()
 {
@@ -136,7 +135,6 @@ void block()
 			// create the newSymbol object
 			symbol newSymbol;
 			newSymbol.kind = constsym;
-			newSymbol.addr = sp;
 			newSymbol.level = level;			
 
 			// grab the symbol unique name;
@@ -163,8 +161,9 @@ void block()
 			if (halt == TRUE) exit(0);
 
 			emit(LIT, 0, 0, val); // Puts constant value in register (use reg 0 for this)
-			emit(STO, 0, 0, sp++); // store on stack and increment
+			emit(STO, 0, 0, sp); // store on stack and increment
 			emit(INC, 0, 0, 1); // increment the stack
+			sp++;
 			getToken();			
 		}
 		while(*token == commasym); // continue checking for consts if comma 
@@ -204,9 +203,10 @@ void block()
 				error(-1); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
 
-			emit(LIT, 0, 0, 0); // Puts default value in register (use reg 0 for this)
-			emit(STO, 0, 0, sp++); // store on stack and increment
 			emit(INC, 0, 0, 1); // increment the stack
+			emit(LIT, 0, 0, 0); // Puts default value in register (use reg 0 for this)
+			emit(STO, 0, 0, sp); // store on stack and increment			
+			sp++;
 			getToken();		
 		}
 		while(*token == commasym);
@@ -236,20 +236,23 @@ void statement()
 	// Assigning value to variables
 	if(*token == identsym)
 	{
+		int saveAddress = find(lexemeList[table-1].name);
+		if(ident == -1)
+			error(UNDECLAREDIDENT);
+		if(halt == TRUE) exit(0);
+
+		if (symbolTable[saveAddress].kind != varsym)
+			error(INVALIDASSIGNMENT);
+
 		getToken();
 		if(*token != becomessym)
 			error(MISSINGOPERATOR);
 		if (halt == TRUE) exit(0);
 	
 		getToken(); // variable value
-		registers[regIndex] = val;
-		emit(LIT, regIndex, 0, val);
-		emit(STO, regIndex, 0, sp++);
-		emit(INC, 0, 0, 1); // increment the stack
-		regIndex++;
 		expression();
-		// TODO CHECK FOR ASSIGNMENT TO CONSTANT?
 
+		emit(STO, 0, 0, symbolTable[ident].addr);		
 	}
 
 	// Call
@@ -379,6 +382,7 @@ void condition()
 	}
 }
 
+// SOMETHING IS WRONG WITH THIS
 void expression()
 {
 	if ( (*token == plussym) || (*token == minussym) )
@@ -394,23 +398,26 @@ void expression()
 		{
 			getToken();
 			term();
-			emit(LOD, regIndex++, 0, sp-1);
-			emit(LOD, regIndex++, 0, sp-2);
-			emit(ADD, regIndex-1, regIndex-1, regIndex-2);
-			emit(STO, regIndex-1, 0, sp++);
+
+			emit(LOD, regIndex++, 0, sp);
+			emit(LOD, regIndex, 0, sp);
+			emit(ADD, regIndex, regIndex-1, regIndex-2);
+			emit(STO, regIndex-2, 0, sp);
 		}
 		if(*token == minussym)
 		{
 			getToken();
 			term();
+			emit(LOD, regIndex++, 0, sp);
 			emit(LOD, regIndex++, 0, sp-1);
-			emit(LOD, regIndex++, 0, sp-2);
-			emit(SUB, regIndex-1, regIndex-1, regIndex-2);
-			emit(STO, regIndex-1, 0, sp++);
+			emit(SUB, regIndex, regIndex, regIndex-1);
+			emit(STO, regIndex, 0, sp);
 		}
 	}
+
 }
 
+// SOMETHING IS WRONG WITH THIS PROBABLY
 void term()
 {
 	factor();
@@ -444,6 +451,7 @@ void factor()
 
 		getToken();
 		emit(INC, 0, 0, 1);
+		sp++;
 		
 		/*
 		j = type();
@@ -461,8 +469,9 @@ void factor()
 	{
 		getToken(); // number retrieved
 		emit(LIT, regIndex, 0, val); // number loaded into stack
-		emit(STO, regIndex++, 0, sp++);
+		emit(STO, regIndex++, 0, sp);
 		emit(INC, 0, 0, 1);
+		sp++;
 	}
 	else if(*token == lparentsym)
 	{
