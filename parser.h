@@ -18,7 +18,9 @@ void factor();
 int type();
 void initcode();
 void emit(int op, int r, int l, int m);
-
+void doMath(int opcode);
+void push(int value);
+void move(int from, int to);
 extern int halt;
 
 extern void genCode(int op, int r, int l, int m);

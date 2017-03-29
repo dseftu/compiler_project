@@ -78,7 +78,7 @@
     #define MOD 18
     #define EQL 19
     #define NEQ 20
-    #define LSS 21
+    #define LES 21
     #define LEQ 22
     #define GTR 23
     #define GEQ 24

@@ -68,7 +68,7 @@ int exist(symbol s)
 	for(i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++)
 	{
 		if(s.kind == symbolTable[i].kind && strcmp(s.name, symbolTable[i].name) == 0
-		   && s.val == symbolTable[i].val && s.addr == symbolTable[i].addr)
+		   && s.level == symbolTable[i].level)
 			return TRUE;
 	}
 	return FALSE;
@@ -77,7 +77,14 @@ int exist(symbol s)
 int enter(symbol s)
 {
 	// if this symbol already exists, then don't add it
-	if (exist(s) == TRUE) return FALSE;
+	if (exist(s) == TRUE) 
+	{
+		
+		return FALSE;
+	}
+	if (symbolTableIndex >= MAX_SYMBOL_TABLE_SIZE)
+		error(SYMBOLTABLEFULL);
+	if (halt == TRUE) exit(0);
 	symbolTable[symbolTableIndex++] = s;
 	return TRUE;
 } 
@@ -87,8 +94,7 @@ int enter(symbol s)
 // returns -1 if not founds 
 int find(char* name)
 {
-	int i;
-	for(i = 0; i < symbolTableIndex; i++)
+	for(int i = 0; i < symbolTableIndex; i++)
 	{
 		if(strcmp(symbolTable[i].name, name) == 0)
 			return i;
@@ -160,10 +166,7 @@ void block()
 				error(-1); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
 
-			emit(LIT, 0, 0, val); // Puts constant value in register (use reg 0 for this)
-			emit(STO, 0, 0, sp); // store on stack and increment
-			emit(INC, 0, 0, 1); // increment the stack
-			sp++;
+			push(val); // pushes the constant on the stack
 			getToken();			
 		}
 		while(*token == commasym); // continue checking for consts if comma 
@@ -200,7 +203,7 @@ void block()
 
 			// add symbol to symbol table
 			if (enter(newSymbol) == FALSE)
-				error(-1); // TODO does this need an error here?
+				error(AMBIGUOUSVARIABLE); // TODO does this need an error here?
 			if (halt == TRUE) exit(0);
 
 			emit(INC, 0, 0, 1); // increment the stack
@@ -237,13 +240,14 @@ void statement()
 	if(*token == identsym)
 	{
 		int saveAddress = find(lexemeList[table-1].name);
-		if(ident == -1)
+		if(saveAddress == -1)
 			error(UNDECLAREDIDENT);
 		if(halt == TRUE) exit(0);
 
 		if (symbolTable[saveAddress].kind != varsym)
 			error(INVALIDASSIGNMENT);
-
+		if(halt == TRUE) exit(0);
+		
 		getToken();
 		if(*token != becomessym)
 			error(MISSINGOPERATOR);
@@ -252,7 +256,7 @@ void statement()
 		getToken(); // variable value
 		expression();
 		emit(LOD, 0, 0, sp-1);
-		emit(STO, 0, 0, symbolTable[ident].addr);		
+		emit(STO, 0, 0, symbolTable[saveAddress].addr);		
 	}
 
 	// Call
@@ -289,37 +293,48 @@ void statement()
 			error(MISSINGTHENAFTERIF);
 		if (halt == TRUE) exit(0);
 		getToken();
-		add3 = codeIndex;
-		emit(JPC, 0, 0, 0);
+		int saveIndex = codeIndex;
+		emit(JPC, regIndex, 0, 0);
 		statement();
-
+		code[saveIndex].m = codeIndex;
+		getToken();
 		if(*token == elsesym)
-			error(NOTIMPLEMENTEDELSE);
+		{
+			code[saveIndex].m = codeIndex+1;
+			getToken();
+			saveIndex = codeIndex;
+			emit(JMP, 0, 0, 0);
+			statement();
+			code[saveIndex].m = codeIndex;
+		}
 		
 	}
 
 	// while
 	else if(*token == whilesym)
 	{
-		add1 = codeIndex; // saves address to jump to check condition for while
+		int index1 = codeIndex; // saves address to jump to check condition for while
+		
 		getToken();
 		condition();
-		add2 = codeIndex; // saves address for inside the while loop
-		emit(JPC, 0, 0, 0);
-		// do exepected
+		int index2 = codeIndex;
+		emit(JPC, regIndex, 0, 0);
+		// do expected
 		if(*token != dosym)
 			error(MISSINGDO);
 		if (halt == TRUE) exit(0);
+		
 		getToken();
 		statement();
-		emit(JMP, 0, 0, add1);
-		
+				
 		// ; missing
 		if(*token !=  semicolonsym)
 			error(MISSINGSEMICOLON);
 		if (halt == TRUE) exit(0);
-		// loop finishes get address for next line
-		code[add2].m = codeIndex;
+
+		emit(JMP, 0, 0, index1);
+		code[index2].m = codeIndex;
+		
 	}
 
 	// read
@@ -368,7 +383,7 @@ void condition()
 	{
 		getToken();
 		expression();
-		emit(ODD, regIndex-1, regIndex-1, regIndex-2);
+		emit(ODD, regIndex, 0, 0);
 	}
 	else
 	{
@@ -376,35 +391,42 @@ void condition()
 		if (*token < eqlsym || *token > geqsym)
 			error(MISSINGRELATIONALOPERATOR);
 		if (halt == TRUE) exit(0);
+
+		int opcode;		
+		if (*token == eqlsym) opcode = EQL;
+		else if (*token == neqsym) opcode = NEQ;
+		else if (*token == lessym) opcode = LES;
+		else if (*token == leqsym) opcode = LEQ;
+		else if (*token == gtrsym) opcode = GTR;
+		else if (*token == geqsym) opcode = GEQ;
+
 		getToken();
 		expression();
-		emit(*token, regIndex-1, regIndex-1, regIndex-2);
+		doMath(opcode);
 	}
 }
 
-// SOMETHING IS WRONG WITH THIS
 void expression()
 {
 	if ( (*token == plussym) || (*token == minussym) )
 	{
+		int negate = FALSE;
 		if(*token == minussym)
-			emit(NEG, regIndex-1, 0, 0);
+			negate = TRUE;
 		getToken();
+		if (negate == TRUE) val = -val;
 	}
 	term();
+	int origRegIndex = regIndex;
 	while ( (*token == plussym) || (*token == minussym) )
 	{	
 		if(*token == plussym)
 		{
 			getToken();
 			term();
-			// add the top two items on the stack
-
-			emit(LOD, regIndex++, 0, sp-1);
-			emit(LOD, regIndex, 0, sp-2);
-			emit(ADD, regIndex-1, regIndex, regIndex-1);
-			emit(STO, --regIndex, 0, sp-1);
-			
+			// add the top two items on the stack and put the
+			// value back ontop
+			doMath(ADD);			
 		}
 		if(*token == minussym)
 		{
@@ -412,12 +434,10 @@ void expression()
 			term();
 
 			// sub the top two items on the stack
-			emit(LOD, regIndex++, 0, sp-1);
-			emit(LOD, regIndex, 0, sp-2);
-			emit(SUB, regIndex-1, regIndex, regIndex-1);
-			emit(STO, --regIndex, 0, sp-1);
+			doMath(SUB);
 		}
 	}
+	regIndex = origRegIndex;
 
 }
 
@@ -434,18 +454,12 @@ void term()
 		if(mulop == multsym)
 		{
 			// multiply the top two items on the stack
-			emit(LOD, regIndex++, 0, sp-1);
-			emit(LOD, regIndex, 0, sp-2);
-			emit(MUL, regIndex-1, regIndex, regIndex-1);
-			emit(STO, regIndex, 0, sp-1);
+			doMath(MUL);
 		}
 		else
 		{
 			// divide the top two items on the stack
-			emit(LOD, regIndex++, 0, sp-2);
-			emit(LOD, regIndex, 0, sp-1);
-			emit(DIV, regIndex-1, regIndex, regIndex-1);
-			emit(STO, regIndex, 0, sp-1);
+			doMath(DIV);
 		}
 	}
 	regIndex = origRegIndex;
@@ -462,8 +476,9 @@ void factor()
 			error(UNDECLAREDIDENT);
 		if(halt == TRUE) exit(0);
 
-		
-		printf("loading %s from %d\n", symbolTable[ident].name, symbolTable[ident].addr);
+		if (symbolTable[ident].kind != constsym && symbolTable[ident].kind != varsym)
+			error(BADUSEOFPROCIDENT);
+
 		emit(LOD, 0, 0, symbolTable[ident].addr);
 		emit(STO, 0, 0, sp);
 		emit(INC, 0, 0, 1);
@@ -472,18 +487,6 @@ void factor()
 
 		getToken();
 
-		
-		/*
-		j = type();
-		// expression can't contain a procedure ident
-		if(j == 3)
-			error(BADUSEOFPROCIDENT);
-		// undeclared ident
-		else if(j != 1 && j != 2)
-			error(UNDECLAREDIDENT);
-		getToken();
-
-		*/
 	}
 	else if(*token == numbersym)
 	{
@@ -536,4 +539,32 @@ void emit(int op, int r, int l, int m)
 	code[codeIndex].l = l;
 	code[codeIndex].m = m;
 	codeIndex++;
+}
+
+void doMath(int opcode)
+{
+	// declaring this for clarity
+	int topTermReg = regIndex++;
+	int topTermStackLoc = sp-1;
+	int btmTermReg = regIndex;
+	int btmTermStackLoc = sp-2;
+
+	emit(LOD, topTermReg, 0, topTermStackLoc); // this is the most recent item
+	emit(LOD, btmTermReg, 0, btmTermStackLoc); // this should be the item under that
+	emit(opcode, btmTermReg, btmTermReg, topTermReg);
+	emit(STO, btmTermReg, 0, topTermStackLoc);
+}
+
+// negates
+void push(int value)
+{
+	emit(INC, 0, 0, 1); // increment the stack
+	emit(LIT, 0, 0, value); // Puts default value in register (use reg 0 for this)
+	emit(STO, 0, 0, sp++); // store on stack and increment			
+}
+
+void move(int from, int to)
+{
+	emit(LOD, 0, 0, from);
+	emit(STO, 0, 0, to);
 }

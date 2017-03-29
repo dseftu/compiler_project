@@ -190,8 +190,8 @@ char* opcodeToString(int op)
             return "eql";
         case NEQ:
             return "neq";
-        case LSS:
-            return "lss";
+        case LES:
+            return "les";
         case LEQ:
             return "leq";
         case GTR:
@@ -272,7 +272,7 @@ void ALU()
         case NEQ:
             R[IR.r] = R[IR.l] != R[IR.m];
             break;
-        case LSS:
+        case LES:
             R[IR.r] = R[IR.l] < R[IR.m];
             break;
         case LEQ:

@@ -176,6 +176,16 @@ void error(int errorCode)
             printf("%s\n", NOTIMPLEMENTEDMSG);
             return;
         }
+        case SYMBOLTABLEFULL:
+        {
+            printf("%s\n", SYMBOLTABLEFULLMSG);
+            return;
+        }
+        case AMBIGUOUSVARIABLE:
+        {
+            printf("%s\n", AMBIGUOUSVARIABLEMSG);
+            return;
+        }
         default:
         {
             printf("%s\n", "UNKNOWN ERROR CODE");

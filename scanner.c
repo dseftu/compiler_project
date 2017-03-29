@@ -125,15 +125,15 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
     {
         // handle comment string
         int lastC = getc(fid);
+
         if (lastC == EOF) return; // unexpected end, but who cares
-        //putchar(lastC);
 
         int commentsEnded = FALSE;
         while (!commentsEnded && !halt)
         {
             int c = getc(fid);
+
             if (c == EOF) return; // unexpected end, but who cares
-            //putchar(c);
 
             if ((char)lastC == '*' && (char)c == '/') commentsEnded = TRUE;
             else lastC = c;
@@ -177,12 +177,12 @@ void scanInput(char *filename)
     {
         // read the next char and print it
         int c = getc(fid);
+
         if (c == EOF)
         {
             stillReading = FALSE;
             break;
         }
-        //putchar(c);
 
         // determine what to do with this c
         if (isdigit(c))
@@ -208,7 +208,7 @@ void scanInput(char *filename)
                 {
                     // more digit to get.
                     c = getc(fid);
-                    //putchar(c);
+
                     nextWord[i] = (char)c;
                     nextWord[++i] = '\0';
                     value = 10 * value + (c - '0');
@@ -271,7 +271,7 @@ void scanInput(char *filename)
                 {
                     // more stuff to get.
                     c = getc(fid);
-                    //putchar(c);
+
                     nextWord[i] = (char)c;
                     nextWord[++i] = '\0';
                 }
@@ -298,7 +298,7 @@ void scanInput(char *filename)
             // take a looksee at the next char
             char nextC = peekC(fid);
 
-            if (!isSpecialSymbols(nextC))
+            if (!isSpecialSymbols(nextC) || ( (char)c == ')' && (char)nextC == ';'))
             {
                 // we're done let's pack it up
                 // this means we found a single char special symbol
@@ -338,7 +338,6 @@ void scanInput(char *filename)
                 // do we match one of our paired special symbols?
                 nextWord[0] = (char)c;
                 c = getc(fid);
-                //putchar(c);
                 nextWord[1] = (char)c;
                 nextWord[2] = '\0';
 
