@@ -251,7 +251,7 @@ void statement()
 	
 		getToken(); // variable value
 		expression();
-
+		emit(LOD, 0, 0, sp-1);
 		emit(STO, 0, 0, symbolTable[ident].addr);		
 	}
 
@@ -398,48 +398,57 @@ void expression()
 		{
 			getToken();
 			term();
+			// add the top two items on the stack
 
-			emit(LOD, regIndex++, 0, sp);
-			emit(LOD, regIndex, 0, sp);
-			emit(ADD, regIndex, regIndex-1, regIndex-2);
-			emit(STO, regIndex-2, 0, sp);
+			emit(LOD, regIndex++, 0, sp-1);
+			emit(LOD, regIndex, 0, sp-2);
+			emit(ADD, regIndex-1, regIndex, regIndex-1);
+			emit(STO, --regIndex, 0, sp-1);
+			
 		}
 		if(*token == minussym)
 		{
 			getToken();
 			term();
-			emit(LOD, regIndex++, 0, sp);
+
+			// sub the top two items on the stack
 			emit(LOD, regIndex++, 0, sp-1);
-			emit(SUB, regIndex, regIndex, regIndex-1);
-			emit(STO, regIndex, 0, sp);
+			emit(LOD, regIndex, 0, sp-2);
+			emit(SUB, regIndex-1, regIndex, regIndex-1);
+			emit(STO, --regIndex, 0, sp-1);
 		}
 	}
 
 }
 
-// SOMETHING IS WRONG WITH THIS PROBABLY
 void term()
 {
+	int origRegIndex = regIndex;
+	int mulop;
 	factor();
 	while ( (*token == multsym) || (*token == slashsym) )
 	{
+		mulop = *token;
 		getToken();
 		factor();
-		if(*token == multsym)
+		if(mulop == multsym)
 		{
+			// multiply the top two items on the stack
 			emit(LOD, regIndex++, 0, sp-1);
-			emit(LOD, regIndex++, 0, sp-2);
-			emit(MUL, regIndex, regIndex, regIndex-1);
-			emit(STO, regIndex-1, 0, sp++);
+			emit(LOD, regIndex, 0, sp-2);
+			emit(MUL, regIndex-1, regIndex, regIndex-1);
+			emit(STO, regIndex, 0, sp-1);
 		}
-		if(*token == slashsym)
+		else
 		{
-			emit(LOD, regIndex++, 0, sp-1);
+			// divide the top two items on the stack
 			emit(LOD, regIndex++, 0, sp-2);
-			emit(DIV, regIndex, regIndex, regIndex-1);
-			emit(STO, regIndex-1, 0, sp-3);
+			emit(LOD, regIndex, 0, sp-1);
+			emit(DIV, regIndex-1, regIndex, regIndex-1);
+			emit(STO, regIndex, 0, sp-1);
 		}
 	}
+	regIndex = origRegIndex;
 }
 
 void factor()
@@ -448,10 +457,21 @@ void factor()
 	// identifier
 	if(*token == identsym)
 	{
+		ident = find(lexemeList[table-1].name);
+		if(ident == -1)
+			error(UNDECLAREDIDENT);
+		if(halt == TRUE) exit(0);
 
-		getToken();
+		
+		printf("loading %s from %d\n", symbolTable[ident].name, symbolTable[ident].addr);
+		emit(LOD, 0, 0, symbolTable[ident].addr);
+		emit(STO, 0, 0, sp);
 		emit(INC, 0, 0, 1);
 		sp++;
+		
+
+		getToken();
+
 		
 		/*
 		j = type();
@@ -468,10 +488,12 @@ void factor()
 	else if(*token == numbersym)
 	{
 		getToken(); // number retrieved
-		emit(LIT, regIndex, 0, val); // number loaded into stack
-		emit(STO, regIndex++, 0, sp);
+		
+		emit(LIT, 0, 0, val); // number loaded into stack
+		emit(STO, 0, 0, sp++);
 		emit(INC, 0, 0, 1);
-		sp++;
+		
+		
 	}
 	else if(*token == lparentsym)
 	{
