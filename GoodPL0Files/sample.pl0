@@ -1,7 +1,6 @@
 const g = 3;
 var x, y;
 begin
-
-	y := g + 6 * 2;
-	write y;
+	y := 3;
+	x := y + 56;
 end.
