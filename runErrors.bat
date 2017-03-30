@@ -65,3 +65,7 @@ echo *******************************************
 echo Invalid start of factor
 echo.
 compiler.exe -l -a -v .\ErrorPL0Files\error15.pl0
+echo *******************************************
+echo Symbol table full
+echo.
+compiler.exe -l -a -v .\ErrorPL0Files\error16.pl0

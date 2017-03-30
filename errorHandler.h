@@ -38,6 +38,7 @@ const char* NOTIMPLEMENTEDELSEMSG = "Not Implementing Else.\n";
 const char* NOTIMPLEMENTEDMSG = "Attempted to use a token that is not implemented!\n";
 const char* SYMBOLTABLEFULLMSG = "This program has too many symbols!\n";
 const char* AMBIGUOUSVARIABLEMSG = "Ambiguous variable declaration!\n";
+const char* OUTOFREGISTERSPACEMSG = "This code requires the use of more registers than are available in the VM!\n";
 
 // prints the error for the specific error code.
 void error(int errorCode);
