@@ -1,3 +1,4 @@
+/* Symbol table full */
 const g = 3;
 var x, y;
 begin

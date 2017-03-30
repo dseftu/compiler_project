@@ -186,6 +186,11 @@ void error(int errorCode)
             printf("%s\n", AMBIGUOUSVARIABLEMSG);
             return;
         }
+        case OUTOFREGISTERSPACE:
+        {
+            printf("%s\n", OUTOFREGISTERSPACEMSG);
+            return;
+        }
         default:
         {
             printf("%s\n", "UNKNOWN ERROR CODE");

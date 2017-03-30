@@ -163,7 +163,7 @@ void block()
 
 			// add symbol to symbol table
 			if (enter(newSymbol) == FALSE)
-				error(-1); // TODO does this need an error here?
+				error(AMBIGUOUSVARIABLE);
 			if (halt == TRUE) exit(0);
 
 			push(val); // pushes the constant on the stack
@@ -203,7 +203,7 @@ void block()
 
 			// add symbol to symbol table
 			if (enter(newSymbol) == FALSE)
-				error(AMBIGUOUSVARIABLE); // TODO does this need an error here?
+				error(AMBIGUOUSVARIABLE);
 			if (halt == TRUE) exit(0);
 
 			emit(INC, 0, 0, 1); // increment the stack
@@ -500,6 +500,7 @@ void factor()
 	}
 	else if(*token == lparentsym)
 	{
+		int saveSP = sp-1;
 		getToken();
 		expression();
 		// ) missing
@@ -507,6 +508,8 @@ void factor()
 			error(MISSINGRIGHTPAREN);
 		if (halt == TRUE) exit(0);
 		getToken();
+
+		move(saveSP, sp-2);
 	}
 
 	//can't begin with this symbol
@@ -543,11 +546,16 @@ void emit(int op, int r, int l, int m)
 
 void doMath(int opcode)
 {
+	
 	// declaring this for clarity
 	int topTermReg = regIndex++;
 	int topTermStackLoc = sp-1;
 	int btmTermReg = regIndex;
 	int btmTermStackLoc = sp-2;
+
+	if (regIndex>=MAX_REGISTER_SIZE)
+		error(OUTOFREGISTERSPACE);
+	if (halt == TRUE) exit(0);
 
 	emit(LOD, topTermReg, 0, topTermStackLoc); // this is the most recent item
 	emit(LOD, btmTermReg, 0, btmTermStackLoc); // this should be the item under that
