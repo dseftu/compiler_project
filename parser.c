@@ -500,6 +500,7 @@ void factor()
 	}
 	else if(*token == lparentsym)
 	{
+		int saveSP = sp-1;
 		getToken();
 		expression();
 		// ) missing
@@ -507,6 +508,8 @@ void factor()
 			error(MISSINGRIGHTPAREN);
 		if (halt == TRUE) exit(0);
 		getToken();
+
+		move(saveSP, sp-2);
 	}
 
 	//can't begin with this symbol
