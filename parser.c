@@ -19,7 +19,7 @@ int level = -1;
 int ident;
 int procadd = 0;
 extern int halt;
-int sp = 3;
+int sp = 4;
 
 int symbolTableIndex = 0;
 int codeIndex = 0;
@@ -31,6 +31,8 @@ int maxIndex = -1;
 // the current token
 int* token;
 int val; 
+
+int cons = 0, proc = 0;
 
 void getToken()
 {
@@ -102,11 +104,10 @@ int find(char* name)
 	return -1;
 }
 
-int cons = 0, proc = 0;
 void program()
 {
 	getToken();
-	emit(INC, 0, 0, sp);
+	
 	block();
 	if (*token != periodsym)
 		error(MISSINGPERIOD);
@@ -124,6 +125,7 @@ void program()
 
 void block()
 {	
+	emit(INC, 0, 0, 4);
 	level++;
 	procadd++;
 	// This if statement handles constants
@@ -225,6 +227,8 @@ void block()
 	{
 		error(NOTIMPLEMENTED);
 		exit(0);
+
+		// get name
 	}
 	
 	statement();

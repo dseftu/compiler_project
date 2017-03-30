@@ -7,6 +7,10 @@
 
     #define TRUE 1
     #define FALSE 0
+    #define MAX_STACK_HEIGHT 2000
+    #define MAX_CODE_LENGTH 500
+    #define MAX_LEXI_LEVELS 3
+    #define MAX_REGISTERS 16
 
     #define MAX_IDENTIFIER_LENGTH 11
     #define MAX_NUMBER_LENGTH 5
