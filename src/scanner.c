@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "scanner.h"
+#include "errorCodes.h"
 
 // Scans an input file and returns the lexeme table
 // TODO:  Need to allow for this to optionally print code
@@ -100,8 +101,7 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
     char nextC = peekC(fid);
     if (isSpecialSymbols(nextC))
     {
-        printf("\nInvalid symbol!  Halting!\n");
-        halt = TRUE;
+        error(UNKSYMBOL);
         return;
     }
 
@@ -142,8 +142,7 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
     else
     {
         // unrecognized sequence
-        printf("\nUnrecognized sequence! Halting!\n");
-        halt = TRUE;
+        error(UNKSYMBOL);
         return;
     }
 }
@@ -159,13 +158,9 @@ void scanInput(char *filename)
     if (fid == NULL)
     {
         // can't open file
-        printf("Unable to open file!");
-        halt = TRUE;
+        error(FILEIO);
         return;
     }
-
-    // print header
-    //printf("Source Program:\n");
 
     // this will be used to store identifiers as we read them
     char nextWord[MAX_IDENTIFIER_LENGTH];
@@ -222,8 +217,7 @@ void scanInput(char *filename)
                 else if (isalpha(nextC))
                 {
                     // alpha in my digits.  halt processing.
-                    printf("\nInvalid identifier!  Halting!\n");
-                    halt = TRUE;
+                    error(INVALIDIDENTIFIER);
                     break;
                 }
 
@@ -232,8 +226,7 @@ void scanInput(char *filename)
             if (i > MAX_NUMBER_LENGTH)
             {
                 // digit was too long!
-                printf("\nNumber was too long!  Halting!\n");
-                halt = TRUE;
+                error(TOOLARGENUMBER);
                 break;
             }
 
@@ -280,8 +273,7 @@ void scanInput(char *filename)
             if (i > MAX_IDENTIFIER_LENGTH)
             {
                 // ident was too long!
-                printf("\nIdentifier too long!  Halting!\n");
-                halt = TRUE;
+                error(IDENTIFIERTOOLONG);
                 break;
             }
 
@@ -319,8 +311,7 @@ void scanInput(char *filename)
                 // if we didn't match, well bad things happened.
                 if (currentSym == -1)
                 {
-                    printf("\nInvalid symbol!  Halting!\n");
-                    halt = TRUE;
+                    error(UNKSYMBOL);
                 }
                 else
                 {
@@ -347,7 +338,7 @@ void scanInput(char *filename)
             else
             {
                 // this means we found an invalid pair.
-                printf("\nUnrecognized symbols! Halting!\n");
+                error(UNKSYMBOL);
                 halt = TRUE;
                 break;
             }
@@ -359,7 +350,7 @@ void scanInput(char *filename)
         else
         {
             // unrecognized character.
-            printf("\nUnrecognized character (%d)! Halting!\n", c);
+            error(UNKSYMBOL);
             halt = TRUE;
             break;
         }
@@ -372,7 +363,7 @@ int addNewSymbol(int kind, char* name, int val)
 {
     if (lexemeTableIndex + 1 >= MAX_SYMBOL_TABLE_SIZE)
     {
-        printf("\nSymbol table full!  Halting!\n");
+        error(SYMBOLTABLEFULL);
         return FALSE;
     }
 

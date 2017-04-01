@@ -39,6 +39,11 @@ const char* NOTIMPLEMENTEDMSG = "Attempted to use a token that is not implemente
 const char* SYMBOLTABLEFULLMSG = "This program has too many symbols!\n";
 const char* AMBIGUOUSVARIABLEMSG = "Ambiguous variable declaration!\n";
 const char* OUTOFREGISTERSPACEMSG = "This code requires the use of more registers than are available in the VM!\n";
+const char* FILEIOMSG = "Unable to open file!\n";
+const char* BADOPCODEMSG = "Unexpected opcode in object code.\n";
+const char* UNKSYMBOLMSG = "Invalid symbol or symbol sequence.\n";
+const char* INVALIDIDENTIFIERMSG = "Invalid identifier.\n";
+const char* IDENTIFIERTOOLONGMSG = "Identifier is too long.\n";
 
 // prints the error for the specific error code.
 void error(int errorCode);
