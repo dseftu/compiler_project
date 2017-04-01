@@ -3,4 +3,4 @@ cls
 Call build.bat
 pause
 cls
-Call run.bat
+Call test.bat
