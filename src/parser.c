@@ -14,236 +14,240 @@
 lexeme lexemeList[MAX_SYMBOL_TABLE_SIZE];
 symbol symbolTable[MAX_SYMBOL_TABLE_SIZE];
 instruction code[MAX_CODE_LENGTH];
-int table = 0;
+
+int lexemeListIndex = 0;
+
+// represents the current lexi level
 int level = -1;
-int ident;
-int procadd = 0;
+
+// a halt flag.  certain errors will raise this flag and allows the code to stop gracefully.
 extern int halt;
+
+// represents the stack pointer
 int sp = 4;
 
+// the current max index in the symbol table
 int symbolTableIndex = 0;
+
+// the max index of the lexemeList
+int maxLexemeListIndex = -1;
+
+// the current index of the object code
 int codeIndex = 0;
+
+// the current available register
 int regIndex = 0;
-// max index of the lexemeList.  When getToken() is called
-// the index is checked against this to ensure we don't go off the wheels
-int maxIndex = -1;
 
 // the current token
 int* token;
-int val; 
+int val;
 
-int cons = 0, proc = 0;
-
-void getToken()
-{
-	// ensure that we aren't over the maxIndex
-	token = &lexemeList[table].kind;
-	if(*token == numbersym)
-		val = lexemeList[table].val;
-	table++;
-}
-
+// entry point for the parser
+// grabs the reference to the lexeme list and starts program();
 void parse(lexeme* _lexemeList, int _maxIndex)
 {
+	// don't continue if we are already halted
 	if (halt == TRUE) exit(0);
+
+	// assign the lexemeList to the local pointer
 	*lexemeList = *_lexemeList;
-	maxIndex = _maxIndex;
+
+	// get the maxindex
+	maxLexemeListIndex = _maxIndex;
 	program();
 }
 
-void initcode()
-{
-	int i;
-	for(i = 0; i < MAX_CODE_LENGTH; i++)
-	{
-		code[i].op = 0;
-		code[i].r = 0;
-		code[i].l = 0;
-		code[i].m = 0;
-	}
-}
-
-// Exist function for checking if symbol is already in table
-int exist(symbol s)
-{
-	int i;
-	for(i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++)
-	{
-		if(s.kind == symbolTable[i].kind && strcmp(s.name, symbolTable[i].name) == 0
-		   && s.level == symbolTable[i].level)
-			return TRUE;
-	}
-	return FALSE;
-}
-
-int enter(symbol s)
-{
-	// if this symbol already exists, then don't add it
-	if (exist(s) == TRUE) 
-	{
-		
-		return FALSE;
-	}
-	if (symbolTableIndex >= MAX_SYMBOL_TABLE_SIZE)
-		error(SYMBOLTABLEFULL);
-	if (halt == TRUE) exit(0);
-	symbolTable[symbolTableIndex++] = s;
-	return TRUE;
-} 
-
-// finds a symbol by name
-// returns location of symbol in table if found
-// returns -1 if not founds 
-int find(char* name)
-{
-	for(int i = 0; i < symbolTableIndex; i++)
-	{
-		if(strcmp(symbolTable[i].name, name) == 0)
-			return i;
-	}
-	return -1;
-}
-
+// the beginning of the actual parsing.
 void program()
 {
-	getToken();
-	
+	getToken();	
 	block();
 	if (*token != periodsym)
 		error(MISSINGPERIOD);
 	if (halt == TRUE) exit(0);
-	printf("No errors, program is syntactically correct.\n\n");
-	emit(SIO_E, 0, 0, 3); // End of the program
-	int i;
-	for(i = 0; i < codeIndex; i++)
-	{
-		genCode(code[i].op, code[i].r, code[i].l, code[i].m);
-	}
 
+	// If we made it here, that means the parser worked
+	printf("No errors, program is syntactically correct.\n\n");
+
+	// End of the program
+	emit(SIO_E, 0, 0, 3); 
+
+	// this actually generates the object code file for the VM to read
+	for(int i = 0; i < codeIndex; i++)
+		genCode(code[i].op, code[i].r, code[i].l, code[i].m);
 }
 
 
 void block()
 {	
-	emit(INC, 0, 0, 4);
+	// increment the level
 	level++;
-	procadd++;
+
+	emit(INC, 0, level, 4);
+	
+	// Handle the declarations:
+
 	// This if statement handles constants
-	if(*token == constsym)
-	{
-		do
-		{
-			getToken();
-
-			// constant must be followed by ident
-			if(*token != identsym)
-				error(MISSINGIDENTIFIER);
-			if (halt == TRUE) exit(0);
-
-			// create the newSymbol object
-			symbol newSymbol;
-			newSymbol.kind = constsym;
-			newSymbol.level = level;			
-
-			// grab the symbol unique name;
-			strcpy(newSymbol.name, lexemeList[table-1].name);
-
-			// const ident must be followed by =
-			getToken();
-			if(*token != eqlsym)
-				error(MISSINGCONSTASSIGNMENTSYMBOL);			
-			if (halt == TRUE) exit(0);
-			getToken();
-
-			// const must be numeric
-			if(*token != numbersym)
-				error(CONSTASSIGNMENTMISSING);
-			if (halt == TRUE) exit(0);
-
-			newSymbol.val = val; // grab the const value
-			newSymbol.addr = sp;
-
-			// add symbol to symbol table
-			if (enter(newSymbol) == FALSE)
-				error(AMBIGUOUSVARIABLE);
-			if (halt == TRUE) exit(0);
-
-			push(val); // pushes the constant on the stack
-			getToken();			
-		}
-		while(*token == commasym); // continue checking for consts if comma 
-
-		// ; expected
-		if(*token != semicolonsym)
-			error(MISSINGSEMICOLONORBRACKET);
-		if (halt == TRUE) exit(0);
-		getToken();
-	}
+	if(*token == constsym) constDeclaration();
 
 	// Variable Declarations
-	if(*token == varsym)
-	{		
-		do
-		{
-			getToken(); // this is the identifier
-
-			// Varaible must be followed by an identifier
-			if(*token != identsym)
-				error(MISSINGIDENTIFIER);
-			if (halt == TRUE) exit(0);
-
-			// create the newSymbol object
-			symbol newSymbol;
-			newSymbol.kind = varsym;
-			newSymbol.addr = sp;
-			newSymbol.level = level;
-
-			// grab the symbol unique name;
-			strcpy(newSymbol.name, lexemeList[table-1].name);
-			
-			newSymbol.val = 0; // default value for a new var			
-
-			// add symbol to symbol table
-			if (enter(newSymbol) == FALSE)
-				error(AMBIGUOUSVARIABLE);
-			if (halt == TRUE) exit(0);
-
-			emit(INC, 0, 0, 1); // increment the stack
-			emit(LIT, 0, 0, 0); // Puts default value in register (use reg 0 for this)
-			emit(STO, 0, 0, sp); // store on stack and increment			
-			sp++;
-			getToken();		
-		}
-		while(*token == commasym);
-
-		// ; expected
-		if(*token != semicolonsym)
-			error(MISSINGSEMICOLONORBRACKET);
-		getToken();
-	}
+	if(*token == varsym) varDeclaration();
 
 	// Procedure Declaration
-	while(*token == procsym)
-	{
-		error(NOTIMPLEMENTED);
-		exit(0);
+	while(*token == procsym) procDeclaration();
 
-		// get name
-	}
-	
+	// handles the actual code:
 	statement();
+	
+
+	// decrement level
 	level--;
 }
 
+void constDeclaration()
+{
+	do
+	{
+		getToken();
+
+		// constant must be followed by ident
+		if(*token != identsym)
+			error(MISSINGIDENTIFIER);
+		if (halt == TRUE) exit(0);
+
+		// create the newSymbol object
+		symbol newSymbol;
+		newSymbol.kind = constsym;
+		newSymbol.level = level;			
+
+		// grab the symbol unique name;
+		strcpy(newSymbol.name, lexemeList[lexemeListIndex-1].name);
+
+		// const ident must be followed by =
+		getToken();
+		if(*token != eqlsym)
+			error(MISSINGCONSTASSIGNMENTSYMBOL);			
+		if (halt == TRUE) exit(0);
+		getToken();
+
+		// const must be numeric
+		if(*token != numbersym)
+			error(CONSTASSIGNMENTMISSING);
+		if (halt == TRUE) exit(0);
+
+		newSymbol.val = val; // grab the const value
+		newSymbol.addr = sp;
+
+		// add symbol to symbol table
+		if (enter(newSymbol) == FALSE)
+			error(AMBIGUOUSVARIABLE);
+		if (halt == TRUE) exit(0);
+
+		push(val); // pushes the constant on the stack
+		getToken();			
+	}
+	while(*token == commasym); // continue checking for consts if comma 
+
+	// ; expected
+	if(*token != semicolonsym)
+		error(MISSINGSEMICOLONORBRACKET);
+	if (halt == TRUE) exit(0);
+	getToken();
+}
+
+void varDeclaration()
+{		
+	do
+	{
+		getToken(); // this is the identifier
+
+		// Varaible must be followed by an identifier
+		if(*token != identsym)
+			error(MISSINGIDENTIFIER);
+		if (halt == TRUE) exit(0);
+
+		// create the newSymbol object
+		symbol newSymbol;
+		newSymbol.kind = varsym;
+		newSymbol.addr = sp;
+		newSymbol.level = level;
+
+		// grab the symbol unique name;
+		strcpy(newSymbol.name, lexemeList[lexemeListIndex-1].name);
+		
+		newSymbol.val = 0; // default value for a new var			
+
+		// add symbol to symbol table
+		if (enter(newSymbol) == FALSE)
+			error(AMBIGUOUSVARIABLE);
+		if (halt == TRUE) exit(0);
+
+		emit(INC, 0, 0, 1); // increment the stack
+		emit(LIT, 0, 0, 0); // Puts default value in register (use reg 0 for this)
+		emit(STO, 0, level, sp); // store on stack and increment			
+		sp++;
+		getToken();		
+	}
+	while(*token == commasym);
+
+	// ; expected
+	if(*token != semicolonsym)
+		error(MISSINGSEMICOLONORBRACKET);
+	getToken();
+}
+
+void procDeclaration()
+{
+	// establish the begining of the activation record
+	emit(JMP, 0, 0, 0);
+	int cx = codeIndex; // save to come back to later
+
+	getToken();
+	if(*token != identsym)
+		error(MISSINGIDENTIFIER);
+
+	// create the newSymbol object
+	symbol newSymbol;
+	newSymbol.kind = procsym;
+	newSymbol.addr = cx;
+	newSymbol.level = level;
+
+	// grab the symbol unique name;
+	strcpy(newSymbol.name, lexemeList[lexemeListIndex-1].name);		
+	newSymbol.val = 0; // default value for a new var			
+
+	// add symbol to symbol table
+	if (enter(newSymbol) == FALSE)
+		error(AMBIGUOUSVARIABLE);
+	if (halt == TRUE) exit(0);
+
+	getToken();
+
+	// ; expected
+	if(*token != semicolonsym)
+		error(MISSINGSEMICOLONORBRACKET);
+
+	getToken();
+	block();
+
+	// ; expected
+	if(*token != semicolonsym)
+		error(MISSINGSEMICOLONORBRACKET);
+	getToken();
+
+	code[cx].m = codeIndex;
+	
+	
+}
+
+
 void statement()
 {
-	int i, j, add1, add2, add3, add4;
-
 	// identifier
 	// Assigning value to variables
 	if(*token == identsym)
 	{
-		int saveAddress = find(lexemeList[table-1].name);
+		int saveAddress = find(lexemeList[lexemeListIndex-1].name);
 		if(saveAddress == -1)
 			error(UNDECLAREDIDENT);
 		if(halt == TRUE) exit(0);
@@ -259,15 +263,33 @@ void statement()
 	
 		getToken(); // variable value
 		expression();
-		emit(LOD, 0, 0, sp-1);
-		emit(STO, 0, 0, symbolTable[saveAddress].addr);		
+		emit(LOD, 0, level, sp-1);
+		emit(STO, 0, symbolTable[saveAddress].level, symbolTable[saveAddress].addr);		
 	}
 
 	// Call
 	else if(*token == callsym)
 	{
-		// throws error because we are not implementing call
-		error(NOTIMPLEMENTEDCALL);
+		getToken();
+		if(*token != identsym)
+			error(MISSINGIDENTAFTERCALL);
+		if (halt == TRUE) exit(0);
+
+		// make sure this exists in the symbol table
+		int saveAddress = find(lexemeList[lexemeListIndex-1].name);
+		if(saveAddress == -1)
+			error(UNDECLAREDIDENT);
+		if(halt == TRUE) exit(0);
+
+		// make sure this is an actual proc
+		if (symbolTable[saveAddress].kind != procsym)
+			error(INVALIDCALL);
+		if(halt == TRUE) exit(0);
+
+		// need to generate the code
+		emit(JMP, 0, 0, symbolTable[saveAddress].addr);
+
+		getToken();
 	}
 
 	// Begin
@@ -345,19 +367,19 @@ void statement()
 	else if(*token == readsym)
 	{
 		getToken();	
-		ident = find(lexemeList[table-1].name);
-		if(ident == -1)
+		int i = find(lexemeList[lexemeListIndex-1].name);
+		if(i == -1)
 			error(UNDECLAREDIDENT);
 		if(halt == TRUE) exit(0);
 
-		if (symbolTable[ident].kind != varsym)
+		if (symbolTable[i].kind != varsym)
 			error(INVALIDASSIGNMENT);
 		if (halt == TRUE) exit(0);
 
 		// read(R(0))
 		// store r(0) at addr
 		emit(SIO_I, 0, 0, 2);
-		emit(STO, 0, 0, symbolTable[ident].addr);
+		emit(STO, 0, symbolTable[i].level, symbolTable[i].addr);
 		
 		getToken();	
 	}
@@ -366,14 +388,14 @@ void statement()
 	else if(*token == writesym)
 	{
 		getToken();
-		ident = find(lexemeList[table-1].name);
-		if(ident == -1)
+		int i = find(lexemeList[lexemeListIndex-1].name);
+		if(i == -1)
 			error(UNDECLAREDIDENT);
 		if(halt == TRUE) exit(0);
 
 		// put stack addr in r0
 		// print r0
-		emit(LOD, 0, 0, symbolTable[ident].addr);
+		emit(LOD, 0, level, symbolTable[i].addr);
 		emit(SIO_O, 0, 0, 1);
 		getToken();
 	}
@@ -471,23 +493,21 @@ void term()
 
 void factor()
 {
-	int i, j;
 	// identifier
 	if(*token == identsym)
 	{
-		ident = find(lexemeList[table-1].name);
-		if(ident == -1)
+		int i = find(lexemeList[lexemeListIndex-1].name);
+		if(i == -1)
 			error(UNDECLAREDIDENT);
 		if(halt == TRUE) exit(0);
 
-		if (symbolTable[ident].kind != constsym && symbolTable[ident].kind != varsym)
+		if (symbolTable[i].kind != constsym && symbolTable[i].kind != varsym)
 			error(BADUSEOFPROCIDENT);
 
-		emit(LOD, 0, 0, symbolTable[ident].addr);
-		emit(STO, 0, 0, sp);
+		emit(LOD, 0, symbolTable[i].level, symbolTable[i].addr);
+		emit(STO, 0, level, sp);
 		emit(INC, 0, 0, 1);
-		sp++;
-		
+		sp++;	
 
 		getToken();
 
@@ -497,10 +517,8 @@ void factor()
 		getToken(); // number retrieved
 		
 		emit(LIT, 0, 0, val); // number loaded into stack
-		emit(STO, 0, 0, sp++);
+		emit(STO, 0, level, sp++);
 		emit(INC, 0, 0, 1);
-		
-		
 	}
 	else if(*token == lparentsym)
 	{
@@ -527,7 +545,7 @@ void factor()
 int type(char* str)
 {
 	int i;
-	for (i = 0; i < table; i++)
+	for (i = 0; i < lexemeListIndex; i++)
 	{
 		if (strcmp(str, lexemeList[i].name) == 0 && lexemeList[i].kind == constsym)
 			return constsym;
@@ -539,6 +557,7 @@ int type(char* str)
 	return 0;
 }
 
+// adds a new line of code to the array
 void emit(int op, int r, int l, int m)
 {
 	code[codeIndex].op = op;
@@ -548,6 +567,7 @@ void emit(int op, int r, int l, int m)
 	codeIndex++;
 }
 
+// similar to an ALU.  This generates the code for any arithmetic and logical binary operations.
 void doMath(int opcode)
 {
 	
@@ -561,22 +581,88 @@ void doMath(int opcode)
 		error(OUTOFREGISTERSPACE);
 	if (halt == TRUE) exit(0);
 
-	emit(LOD, topTermReg, 0, topTermStackLoc); // this is the most recent item
-	emit(LOD, btmTermReg, 0, btmTermStackLoc); // this should be the item under that
+	emit(LOD, topTermReg, level, topTermStackLoc); // this is the most recent item
+	emit(LOD, btmTermReg, level, btmTermStackLoc); // this should be the item under that
 	emit(opcode, btmTermReg, btmTermReg, topTermReg);
-	emit(STO, btmTermReg, 0, topTermStackLoc);
+	emit(STO, btmTermReg, level, topTermStackLoc);
 }
 
-// negates
+// pushs a value on top of the stack.  Useful for const declarations.
 void push(int value)
 {
 	emit(INC, 0, 0, 1); // increment the stack
 	emit(LIT, 0, 0, value); // Puts default value in register (use reg 0 for this)
-	emit(STO, 0, 0, sp++); // store on stack and increment			
+	emit(STO, 0, level, sp++); // store on stack and increment			
 }
 
+// gets an item from the stack and places it in another spot on the stack.  Leaves original intact.
 void move(int from, int to)
 {
-	emit(LOD, 0, 0, from);
-	emit(STO, 0, 0, to);
+	emit(LOD, 0, level, from);
+	emit(STO, 0, level, to);
+}
+
+// retrieves the next token
+void getToken()
+{
+	token = &lexemeList[lexemeListIndex].kind;
+	if(*token == numbersym)
+		val = lexemeList[lexemeListIndex].val;
+	printf("%s\n", lexemeList[lexemeListIndex].name);
+	lexemeListIndex++;
+}
+
+// initializes the code array
+void initcode()
+{
+	int i;
+	for(i = 0; i < MAX_CODE_LENGTH; i++)
+	{
+		code[i].op = 0;
+		code[i].r = 0;
+		code[i].l = 0;
+		code[i].m = 0;
+	}
+}
+
+// Exist function for checking if symbol is already in table
+int exist(symbol s)
+{
+	int i;
+	for(i = 0; i < MAX_SYMBOL_TABLE_SIZE; i++)
+	{
+		if(s.kind == symbolTable[i].kind && strcmp(s.name, symbolTable[i].name) == 0
+		   && s.level == symbolTable[i].level)
+			return TRUE;
+	}
+	return FALSE;
+}
+
+// adds a new symbol to the symbol table.  Returns TRUE on success.
+int enter(symbol s)
+{
+	// if this symbol already exists, then don't add it
+	if (exist(s) == TRUE) 
+	{
+		
+		return FALSE;
+	}
+	if (symbolTableIndex >= MAX_SYMBOL_TABLE_SIZE)
+		error(SYMBOLTABLEFULL);
+	if (halt == TRUE) exit(0);
+	symbolTable[symbolTableIndex++] = s;
+	return TRUE;
+} 
+
+// finds a symbol by name
+// returns location of symbol in table if found
+// returns -1 if not founds 
+int find(char* name)
+{
+	for(int i = 0; i < symbolTableIndex; i++)
+	{
+		if(strcmp(symbolTable[i].name, name) == 0)
+			return i;
+	}
+	return -1;
 }
