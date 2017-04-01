@@ -23,6 +23,7 @@
 
 #include "common.h"
 #include "P-machine.h"
+#include "errorCodes.h"
 
 extern int halt;
 extern int printObjectCode;
@@ -84,12 +85,7 @@ void readInput(char *filename)
 
     fid = fopen(filename, "r");
 
-    if (fid == NULL)
-    {
-        // can't open file
-        printf("Unable to open file!");
-        halt = TRUE;
-    }
+    if (fid == NULL) error(FILEIO);
     else
     {
         int i = 0;
@@ -199,8 +195,7 @@ char* opcodeToString(int op)
         case GEQ:
             return "geq";
         default:
-            printf("unexpected opcode!");
-            halt = TRUE;
+            error(BADOPCODE);
             return "";
     }
     return "";
@@ -285,8 +280,7 @@ void ALU()
             R[IR.r] = R[IR.l] >= R[IR.m];
             break;
         default:
-            printf("unexpected opcode of %d!", IR.op);
-            halt = TRUE;
+            error(BADOPCODE);
             return;
     }
 }

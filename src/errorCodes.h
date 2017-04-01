@@ -39,5 +39,10 @@
     #define SYMBOLTABLEFULL 32
     #define AMBIGUOUSVARIABLE 33
     #define OUTOFREGISTERSPACE 34
+    #define FILEIO 35
+    #define BADOPCODE 36
+    #define UNKSYMBOL 37
+    #define INVALIDIDENTIFIER 38
+    #define IDENTIFIERTOOLONG 39
 
 #endif // ERRORHANDLER_H
