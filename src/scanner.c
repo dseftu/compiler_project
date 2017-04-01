@@ -289,17 +289,44 @@ void scanInput(char *filename)
 
             // take a looksee at the next char
             char nextC = peekC(fid);
+            if ((char)c == '+')
+            {
+                nextWord[0] = (char)c;
+                nextWord[1] = '\0';
+                halt = !addNewSymbol(plussym, nextWord, 0);
 
-            if (!isSpecialSymbols(nextC) || ( (char)c == ')' && (char)nextC == ';'))
+            }
+            else if ((char)c == '-')
+            {
+                nextWord[0] = (char)c;
+                nextWord[1] = '\0';
+                halt = !addNewSymbol(minussym, nextWord, 0);
+
+            }
+            else if ((char)c == '*' && (char)nextC != '/')
+            {
+                nextWord[0] = (char)c;
+                nextWord[1] = '\0';
+                halt = !addNewSymbol(multsym, nextWord, 0);
+
+            }
+            else if ((char)c == '/' && (char)nextC != '*')
+            {
+                nextWord[0] = (char)c;
+                nextWord[1] = '\0';
+                halt = !addNewSymbol(slashsym, nextWord, 0);
+            }
+            else if (!isSpecialSymbols(nextC) || ((char)c == ')' && (
+                (char)nextC == ';' || 
+                (char)nextC == '+' || 
+                (char)nextC == '-' || 
+                (char)nextC == '*' || 
+                (char)nextC == '/' )))
             {
                 // we're done let's pack it up
                 // this means we found a single char special symbol
-                 int currentSym = -1;
-                if ((char)c == '+') currentSym = plussym;
-                else if ((char)c == '-') currentSym = minussym;
-                else if ((char)c == '*') currentSym = multsym;
-                else if ((char)c == '/') currentSym = slashsym;
-                else if ((char)c == '(') currentSym = lparentsym;
+                int currentSym = -1;
+                if ((char)c == '(') currentSym = lparentsym;
                 else if ((char)c == ')') currentSym = rparentsym;
                 else if ((char)c == '=') currentSym = eqlsym;
                 else if ((char)c == ',') currentSym = commasym;
@@ -339,7 +366,6 @@ void scanInput(char *filename)
             {
                 // this means we found an invalid pair.
                 error(UNKSYMBOL);
-                halt = TRUE;
                 break;
             }
         }
