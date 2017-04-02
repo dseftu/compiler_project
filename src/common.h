@@ -7,12 +7,17 @@
 
     #define TRUE 1
     #define FALSE 0
+    #define MAX_STACK_HEIGHT 2000
+    #define MAX_CODE_LENGTH 500
+    #define MAX_LEXI_LEVELS 3
+    #define MAX_REGISTERS 16
 
     #define MAX_IDENTIFIER_LENGTH 11
     #define MAX_NUMBER_LENGTH 5
     #define MAX_SYMBOL_TABLE_SIZE 100
     #define MAX_CODE_LENGTH 500
     #define REG 16
+    #define MAX_REGISTER_SIZE 16
 
     #define nulsym 1
     #define identsym 2
@@ -78,7 +83,7 @@
     #define MOD 18
     #define EQL 19
     #define NEQ 20
-    #define LSS 21
+    #define LES 21
     #define LEQ 22
     #define GTR 23
     #define GEQ 24

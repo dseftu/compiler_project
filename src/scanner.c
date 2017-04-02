@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "scanner.h"
+#include "errorCodes.h"
 
 // Scans an input file and returns the lexeme table
 // TODO:  Need to allow for this to optionally print code
@@ -100,8 +101,7 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
     char nextC = peekC(fid);
     if (isSpecialSymbols(nextC))
     {
-        printf("\nInvalid symbol!  Halting!\n");
-        halt = TRUE;
+        error(UNKSYMBOL);
         return;
     }
 
@@ -125,15 +125,15 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
     {
         // handle comment string
         int lastC = getc(fid);
+
         if (lastC == EOF) return; // unexpected end, but who cares
-        //putchar(lastC);
 
         int commentsEnded = FALSE;
         while (!commentsEnded && !halt)
         {
             int c = getc(fid);
+
             if (c == EOF) return; // unexpected end, but who cares
-            //putchar(c);
 
             if ((char)lastC == '*' && (char)c == '/') commentsEnded = TRUE;
             else lastC = c;
@@ -142,8 +142,7 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
     else
     {
         // unrecognized sequence
-        printf("\nUnrecognized sequence! Halting!\n");
-        halt = TRUE;
+        error(UNKSYMBOL);
         return;
     }
 }
@@ -159,13 +158,9 @@ void scanInput(char *filename)
     if (fid == NULL)
     {
         // can't open file
-        printf("Unable to open file!");
-        halt = TRUE;
+        error(FILEIO);
         return;
     }
-
-    // print header
-    //printf("Source Program:\n");
 
     // this will be used to store identifiers as we read them
     char nextWord[MAX_IDENTIFIER_LENGTH];
@@ -177,12 +172,12 @@ void scanInput(char *filename)
     {
         // read the next char and print it
         int c = getc(fid);
+
         if (c == EOF)
         {
             stillReading = FALSE;
             break;
         }
-        //putchar(c);
 
         // determine what to do with this c
         if (isdigit(c))
@@ -208,7 +203,7 @@ void scanInput(char *filename)
                 {
                     // more digit to get.
                     c = getc(fid);
-                    //putchar(c);
+
                     nextWord[i] = (char)c;
                     nextWord[++i] = '\0';
                     value = 10 * value + (c - '0');
@@ -222,8 +217,7 @@ void scanInput(char *filename)
                 else if (isalpha(nextC))
                 {
                     // alpha in my digits.  halt processing.
-                    printf("\nInvalid identifier!  Halting!\n");
-                    halt = TRUE;
+                    error(INVALIDIDENTIFIER);
                     break;
                 }
 
@@ -232,8 +226,7 @@ void scanInput(char *filename)
             if (i > MAX_NUMBER_LENGTH)
             {
                 // digit was too long!
-                printf("\nNumber was too long!  Halting!\n");
-                halt = TRUE;
+                error(TOOLARGENUMBER);
                 break;
             }
 
@@ -271,7 +264,7 @@ void scanInput(char *filename)
                 {
                     // more stuff to get.
                     c = getc(fid);
-                    //putchar(c);
+
                     nextWord[i] = (char)c;
                     nextWord[++i] = '\0';
                 }
@@ -280,8 +273,7 @@ void scanInput(char *filename)
             if (i > MAX_IDENTIFIER_LENGTH)
             {
                 // ident was too long!
-                printf("\nIdentifier too long!  Halting!\n");
-                halt = TRUE;
+                error(IDENTIFIERTOOLONG);
                 break;
             }
 
@@ -297,17 +289,44 @@ void scanInput(char *filename)
 
             // take a looksee at the next char
             char nextC = peekC(fid);
+            if ((char)c == '+')
+            {
+                nextWord[0] = (char)c;
+                nextWord[1] = '\0';
+                halt = !addNewSymbol(plussym, nextWord, 0);
 
-            if (!isSpecialSymbols(nextC))
+            }
+            else if ((char)c == '-')
+            {
+                nextWord[0] = (char)c;
+                nextWord[1] = '\0';
+                halt = !addNewSymbol(minussym, nextWord, 0);
+
+            }
+            else if ((char)c == '*' && (char)nextC != '/')
+            {
+                nextWord[0] = (char)c;
+                nextWord[1] = '\0';
+                halt = !addNewSymbol(multsym, nextWord, 0);
+
+            }
+            else if ((char)c == '/' && (char)nextC != '*')
+            {
+                nextWord[0] = (char)c;
+                nextWord[1] = '\0';
+                halt = !addNewSymbol(slashsym, nextWord, 0);
+            }
+            else if (!isSpecialSymbols(nextC) || ((char)c == ')' && (
+                (char)nextC == ';' || 
+                (char)nextC == '+' || 
+                (char)nextC == '-' || 
+                (char)nextC == '*' || 
+                (char)nextC == '/' )))
             {
                 // we're done let's pack it up
                 // this means we found a single char special symbol
-                 int currentSym = -1;
-                if ((char)c == '+') currentSym = plussym;
-                else if ((char)c == '-') currentSym = minussym;
-                else if ((char)c == '*') currentSym = multsym;
-                else if ((char)c == '/') currentSym = slashsym;
-                else if ((char)c == '(') currentSym = lparentsym;
+                int currentSym = -1;
+                if ((char)c == '(') currentSym = lparentsym;
                 else if ((char)c == ')') currentSym = rparentsym;
                 else if ((char)c == '=') currentSym = eqlsym;
                 else if ((char)c == ',') currentSym = commasym;
@@ -319,8 +338,7 @@ void scanInput(char *filename)
                 // if we didn't match, well bad things happened.
                 if (currentSym == -1)
                 {
-                    printf("\nInvalid symbol!  Halting!\n");
-                    halt = TRUE;
+                    error(UNKSYMBOL);
                 }
                 else
                 {
@@ -338,7 +356,6 @@ void scanInput(char *filename)
                 // do we match one of our paired special symbols?
                 nextWord[0] = (char)c;
                 c = getc(fid);
-                //putchar(c);
                 nextWord[1] = (char)c;
                 nextWord[2] = '\0';
 
@@ -348,8 +365,7 @@ void scanInput(char *filename)
             else
             {
                 // this means we found an invalid pair.
-                printf("\nUnrecognized symbols! Halting!\n");
-                halt = TRUE;
+                error(UNKSYMBOL);
                 break;
             }
         }
@@ -360,7 +376,7 @@ void scanInput(char *filename)
         else
         {
             // unrecognized character.
-            printf("\nUnrecognized character (%d)! Halting!\n", c);
+            error(UNKSYMBOL);
             halt = TRUE;
             break;
         }
@@ -373,7 +389,7 @@ int addNewSymbol(int kind, char* name, int val)
 {
     if (lexemeTableIndex + 1 >= MAX_SYMBOL_TABLE_SIZE)
     {
-        printf("\nSymbol table full!  Halting!\n");
+        error(SYMBOLTABLEFULL);
         return FALSE;
     }
 

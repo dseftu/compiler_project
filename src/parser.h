@@ -18,6 +18,14 @@ void factor();
 int type();
 void initcode();
 void emit(int op, int r, int l, int m);
+void doMath(int opcode);
+void push(int value);
+void move(int from, int to);
+int enter(symbol s);
+int find(char* name);
+void constDeclaration();
+void varDeclaration();
+void procDeclaration();
 
 extern int halt;
 

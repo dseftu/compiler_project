@@ -5,10 +5,7 @@
 #define PMACHINE_H
 
 
-#define MAX_STACK_HEIGHT 2000
-#define MAX_CODE_LENGTH 500
-#define MAX_LEXI_LEVELS 3
-#define MAX_REGISTERS 16
+
 
 // set up the four registers to handle the stack/code
 int BP = 1;
@@ -56,6 +53,9 @@ int base(int l, int base);
 
 // loads the object code and executes it
 void run(char *objectCodeFileName);
+
+// This function is called whenever there is an error.  It raises the halt flag.
+extern void error(int errorCode);
 
 
 #endif

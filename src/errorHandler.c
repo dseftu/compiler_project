@@ -176,6 +176,46 @@ void error(int errorCode)
             printf("%s\n", NOTIMPLEMENTEDMSG);
             return;
         }
+        case SYMBOLTABLEFULL:
+        {
+            printf("%s\n", SYMBOLTABLEFULLMSG);
+            return;
+        }
+        case AMBIGUOUSVARIABLE:
+        {
+            printf("%s\n", AMBIGUOUSVARIABLEMSG);
+            return;
+        }
+        case OUTOFREGISTERSPACE:
+        {
+            printf("%s\n", OUTOFREGISTERSPACEMSG);
+            return;
+        }
+        case FILEIO:
+        {
+            printf("%s\n", FILEIOMSG);
+            return;
+        }
+        case BADOPCODE:
+        {
+            printf("%s\n", BADOPCODEMSG);
+            return;
+        }
+        case UNKSYMBOL:
+        {
+            printf("%s\n", UNKSYMBOLMSG);
+            return;
+        }
+        case INVALIDIDENTIFIER:
+        {
+            printf("%s\n", INVALIDIDENTIFIERMSG);
+            return;
+        }
+        case IDENTIFIERTOOLONG:
+        {
+            printf("%s\n", IDENTIFIERTOOLONGMSG);
+            return;
+        }
         default:
         {
             printf("%s\n", "UNKNOWN ERROR CODE");

@@ -16,8 +16,7 @@ Compilation instructions:
 
 from the eustis server prompt:
 
-gcc scanner.c -o scanner
-gcc -o compiler compiler.c errorHandler.c icg.c P-machine.c parser.c scanner.c
+gcc -o ./bin/compiler ./src/compiler.c ./src/errorHandler.c ./src/icg.c ./src/P-machine.c ./src/parser.c ./src/scanner.c
 
 There is a small sample PL0 file included with this assignment in the ./GoodPL0Files/ folder as well as several
 PL0 files with errors that the parser should be able to detect in ./ErrorPL0Files/

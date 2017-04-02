@@ -1,3 +1,3 @@
 @echo off
 cls
-gcc -o compiler.exe compiler.c errorHandler.c icg.c P-machine.c parser.c scanner.c
+gcc -o ./bin/compiler.exe ./src/compiler.c ./src/errorHandler.c ./src/icg.c ./src/P-machine.c ./src/parser.c ./src/scanner.c
