@@ -98,8 +98,7 @@ void block()
 
 	// handles the actual code:
 	statement();
-	
-
+	emit(RTN, 0, 0, 0);
 	// decrement level
 	level--;
 }
@@ -199,8 +198,8 @@ void varDeclaration()
 void procDeclaration()
 {
 	// establish the begining of the activation record
-	emit(JMP, 0, 0, 0);
 	int cx = codeIndex; // save to come back to later
+	emit(JMP, 0, 0, 666);
 
 	getToken();
 	if(*token != identsym)
@@ -209,7 +208,7 @@ void procDeclaration()
 	// create the newSymbol object
 	symbol newSymbol;
 	newSymbol.kind = procsym;
-	newSymbol.addr = cx;
+	newSymbol.addr = codeIndex;
 	newSymbol.level = level;
 
 	// grab the symbol unique name;
@@ -229,17 +228,12 @@ void procDeclaration()
 
 	getToken();
 	block();
-
 	// ; expected
 	if(*token != semicolonsym)
 		error(MISSINGSEMICOLONORBRACKET);
 	getToken();
-
 	code[cx].m = codeIndex;
-	
-	
 }
-
 
 void statement()
 {
