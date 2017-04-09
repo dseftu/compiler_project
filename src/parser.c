@@ -333,7 +333,7 @@ void identstatement()
 	getToken(); // variable value
 	expression();
 	emit(LOD, 0, level, sp-1);
-	emit(STO, 0, symbolTable[saveAddress].level, symbolTable[saveAddress].addr);		
+	emit(STO, 0, level - symbolTable[saveAddress].level, symbolTable[saveAddress].addr);		
 }
 
 void ifstatement()
@@ -402,7 +402,7 @@ void readstatement()
 	// read(R(0))
 	// store r(0) at addr
 	emit(SIO_I, 0, 0, 2);
-	emit(STO, 0, symbolTable[i].level, symbolTable[i].addr);
+	emit(STO, 0, level - symbolTable[i].level, symbolTable[i].addr);
 	
 	getToken();	
 }
@@ -525,8 +525,8 @@ void factor()
 		if (symbolTable[i].kind != constsym && symbolTable[i].kind != varsym)
 			error(BADUSEOFPROCIDENT);
 
-		emit(LOD, 0, symbolTable[i].level, symbolTable[i].addr);
-		emit(STO, 0, level, sp);
+		emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
+		emit(STO, 0, level - symbolTable[i].level, sp);
 		emit(INC, 0, 0, 1);
 		sp++;	
 
