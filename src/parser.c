@@ -24,7 +24,7 @@ int level = -1;
 extern int halt;
 
 // represents the stack pointer
-int sp = 4;
+int sp = 0;
 
 // the current max index in the symbol table
 int symbolTableIndex = 0;
@@ -83,7 +83,7 @@ void block()
 	level++;
 	int originalSymbolTableIndex = symbolTableIndex;
 	int space = 4;
-	sp = 4;
+	sp = 1;
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
 	

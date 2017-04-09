@@ -12,4 +12,4 @@ echo.
 echo.
 echo .\bin\compiler.exe .\GoodPL0Files\test.pl0
 echo.
-.\bin\compiler.exe -a -v .\GoodPL0Files\test3.pl0
+.\bin\compiler.exe -a .\GoodPL0Files\test3.pl0
