@@ -1,15 +1,14 @@
 var x;
 procedure small;
-var y;
 begin
-  y := y + 1;
+  x := x + 1;
 end;
 
 begin
-  y := 1;
-  write y;
+  x := 5;
+  write x;
   call small;
-  write y;
+  write x;
   call small;
-  write y;
+  write x;
 end.

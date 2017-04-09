@@ -81,7 +81,9 @@ void block()
 {	
 	// increment the level
 	level++;
+	int originalSymbolTableIndex = symbolTableIndex;
 	int space = 4;
+	sp = 4;
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
 	
@@ -104,6 +106,9 @@ void block()
 	// handles the actual code:
 	statement();
 
+	emit(RTN, 0, 0, 0);
+
+	symbolTableIndex = originalSymbolTableIndex;
 	// decrement level
 	level--;
 }
@@ -219,7 +224,7 @@ void procDeclaration()
 	// create the newSymbol object
 	symbol newSymbol;
 	newSymbol.kind = procsym;
-	newSymbol.addr = codeIndex+1;
+	newSymbol.addr = codeIndex;
 	newSymbol.level = level;
 
 	// grab the symbol unique name;
@@ -245,7 +250,7 @@ void procDeclaration()
 	if(*token != semicolonsym)
 		error(MISSINGSEMICOLONORBRACKET);
 
-	emit(RTN, 0, 0, 0);
+	//emit(RTN, 0, 0, 0);
 
 	getToken();
 }
@@ -604,10 +609,10 @@ void doMath(int opcode)
 		error(OUTOFREGISTERSPACE);
 	if (halt == TRUE) exit(0);
 
-	emit(LOD, topTermReg, 0, topTermStackLoc); // this is the most recent item
-	emit(LOD, btmTermReg, 0, btmTermStackLoc); // this should be the item under that
+	emit(LOD, topTermReg, level, topTermStackLoc); // this is the most recent item
+	emit(LOD, btmTermReg, level, btmTermStackLoc); // this should be the item under that
 	emit(opcode, btmTermReg, btmTermReg, topTermReg);
-	emit(STO, btmTermReg, 0, topTermStackLoc);
+	emit(STO, btmTermReg, level, topTermStackLoc);
 }
 
 // pushs a value on top of the stack.  Useful for const declarations.
