@@ -3,12 +3,11 @@ procedure small;
 var y;
 begin
   y := y + 1;
-  write y;
 end;
 
 begin
-  x := 3;
-  write x;
+  y := 1;
+  write y;
   call small;
   write y;
   call small;

@@ -83,14 +83,12 @@ void block()
 	level++;
 	int space = 4;
 	int cx = codeIndex;
-	emit(JMP, 0, 0, 0);
-
-	
+	emit(JMP, 0, 0, 0);	
 	
 	// Handle the declarations:
 
 	// This if statement handles constants
-	if(*token == constsym) constDeclaration();
+	if(*token == constsym) space += constDeclaration();
 
 	// Variable Declarations
 	if(*token == varsym) space += varDeclaration();
@@ -106,13 +104,13 @@ void block()
 	// handles the actual code:
 	statement();
 
-	emit(RTN, 0, 0, 0);
 	// decrement level
 	level--;
 }
 
-void constDeclaration()
+int constDeclaration()
 {
+	int space = 0;
 	do
 	{
 		getToken();
@@ -151,6 +149,7 @@ void constDeclaration()
 		if (halt == TRUE) exit(0);
 
 		push(val); // pushes the constant on the stack
+		space++;
 		getToken();			
 	}
 	while(*token == commasym); // continue checking for consts if comma 
@@ -160,6 +159,8 @@ void constDeclaration()
 		error(MISSINGSEMICOLONORBRACKET);
 	if (halt == TRUE) exit(0);
 	getToken();
+
+	return space;
 }
 
 int varDeclaration()
@@ -239,12 +240,12 @@ void procDeclaration()
 
 	getToken();
 	block();
-
 	
-
 	// ; expected
 	if(*token != semicolonsym)
 		error(MISSINGSEMICOLONORBRACKET);
+
+	emit(RTN, 0, 0, 0);
 
 	getToken();
 }
@@ -418,7 +419,7 @@ void writestatement()
 
 	// put stack addr in r0
 	// print r0
-	emit(LOD, 0, symbolTable[i].level, symbolTable[i].addr);
+	emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
 	emit(SIO_O, 0, 0, 1);
 	getToken();
 }
@@ -526,7 +527,7 @@ void factor()
 			error(BADUSEOFPROCIDENT);
 
 		emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
-		emit(STO, 0, level - symbolTable[i].level, sp);
+		emit(STO, 0, level, sp);
 		emit(INC, 0, 0, 1);
 		sp++;	
 
@@ -546,6 +547,7 @@ void factor()
 		int saveSP = sp-1;
 		getToken();
 		expression();
+
 		// ) missing
 		if(*token != rparentsym)
 			error(MISSINGRIGHTPAREN);
@@ -566,7 +568,7 @@ void factor()
 int type(char* str)
 {
 	int i;
-	for (i = 0; i < lexemeListIndex; i++)
+	for (i = lexemeListIndex-1; i >= 0; i--)
 	{
 		if (strcmp(str, lexemeList[i].name) == 0 && lexemeList[i].kind == constsym)
 			return constsym;
@@ -602,10 +604,10 @@ void doMath(int opcode)
 		error(OUTOFREGISTERSPACE);
 	if (halt == TRUE) exit(0);
 
-	emit(LOD, topTermReg, level, topTermStackLoc); // this is the most recent item
-	emit(LOD, btmTermReg, level, btmTermStackLoc); // this should be the item under that
+	emit(LOD, topTermReg, 0, topTermStackLoc); // this is the most recent item
+	emit(LOD, btmTermReg, 0, btmTermStackLoc); // this should be the item under that
 	emit(opcode, btmTermReg, btmTermReg, topTermReg);
-	emit(STO, btmTermReg, level, topTermStackLoc);
+	emit(STO, btmTermReg, 0, topTermStackLoc);
 }
 
 // pushs a value on top of the stack.  Useful for const declarations.
