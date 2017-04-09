@@ -280,6 +280,7 @@ void ALU()
             R[IR.r] = R[IR.l] >= R[IR.m];
             break;
         default:
+            printf("OPCODE FOUND %d\n", IR.op);
             error(BADOPCODE);
             return;
     }

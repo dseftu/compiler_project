@@ -4,9 +4,6 @@
 #ifndef PMACHINE_H
 #define PMACHINE_H
 
-
-
-
 // set up the four registers to handle the stack/code
 int BP = 1;
 int SP = 0;

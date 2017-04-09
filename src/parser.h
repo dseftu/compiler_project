@@ -23,9 +23,17 @@ void push(int value);
 void move(int from, int to);
 int enter(symbol s);
 int find(char* name);
-void constDeclaration();
-void varDeclaration();
+int constDeclaration();
+int varDeclaration();
 void procDeclaration();
+void callstatement();
+void beginstatement();
+void identstatement();
+void ifstatement();
+void whilestatement();
+void readstatement();
+void writestatement();
+
 
 extern int halt;
 
