@@ -1,19 +1,16 @@
-const m = 7, n = 85;  
-var  i,x,y,z,q,r;  
-procedure mult; 
-  var a, b;  
-  begin 
-     a := x;  b := y; z := 0;   
-     while b > 0 do    
-     begin 
-        if odd x then z := z+a;       
-           a := 2*a; 
-           b := b/2;     
-     end   
-  end;
+var f, n;
+procedure fact;
+var ans1;
+begin
+  ans1:=n;
+  n:= n-1;
+  if n = 0 then f := 1;
+  if n > 0 then call fact;
+  f:=f*ans1;
+end;
 
 begin
-  x := m;
-  y := n;
-  call mult;
+  n:=3;
+  call fact;
+  write f;
 end.
