@@ -7,9 +7,9 @@ echo =============================================
 echo Sample Program (test2.pl0)
 echo.
 echo.
-type .\GoodPL0Files\test2.pl0
+type .\GoodPL0Files\sample.pl0
 echo.
 echo.
 echo .\bin\compiler.exe .\GoodPL0Files\test.pl0
 echo.
-.\bin\compiler.exe -a .\GoodPL0Files\test3.pl0
+.\bin\compiler.exe -a .\GoodPL0Files\sample.pl0
