@@ -82,8 +82,8 @@ void block()
 	// increment the level
 	level++;
 	int originalSymbolTableIndex = symbolTableIndex;
-	int space = 3;
-	sp = 1;
+	int space = 0;
+	//sp = 1;
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
 	
@@ -96,7 +96,7 @@ void block()
 	// Procedure Declaration
 	while(*token == procsym) procDeclaration();
 	code[cx].m = codeIndex;
-	emit(INC, 0, 0, space);
+	emit(INC, 0, 0, space+4);
 	sp+=space;
 	// handles the actual code:
 	statement();
@@ -408,6 +408,7 @@ void writestatement()
 	getToken();
 	int i = find(lexemeList[lexemeListIndex-1].name);
 	printf("LOOKING AT %s at %d\n", lexemeList[lexemeListIndex-1].name, i);
+	printf("Symboltable name %s, address %d, level %d\n", symbolTable[i].name, symbolTable[i].addr, symbolTable[i].level);
 	if(i == -1)
 		error(UNDECLAREDIDENT);
 	if(halt == TRUE) exit(0);
@@ -525,7 +526,7 @@ void factor()
 		else
 			emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
 		emit(STO, 0, level, sp);
-		emit(INC, 0, 0, 1);
+		//emit(INC, 0, 0, 1);
 		sp++;	
 
 		getToken();
