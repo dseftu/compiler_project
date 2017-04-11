@@ -23,7 +23,7 @@ void push(int value);
 void move(int from, int to);
 int enter(symbol s);
 int find(char* name);
-int constDeclaration();
+void constDeclaration();
 int varDeclaration();
 void procDeclaration();
 void callstatement();

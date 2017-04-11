@@ -10,6 +10,6 @@ echo.
 type .\GoodPL0Files\test2.pl0
 echo.
 echo.
-echo .\bin\compiler.exe .\GoodPL0Files\test.pl0
+echo .\bin\compiler.exe .\GoodPL0Files\test2.pl0
 echo.
-.\bin\compiler.exe -a -v .\GoodPL0Files\test3.pl0
+.\bin\compiler.exe -a -v .\GoodPL0Files\test2.pl0

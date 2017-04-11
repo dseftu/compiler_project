@@ -1,6 +1,12 @@
 const g = 3;
-var x, y;
+var x, y, z;
 begin
 	y := 3;
 	x := y + 56;
+	write x;
+	z:= 4;
+	x:= y + 60;
+	write y;
+	write z;
+	write x;
 end.

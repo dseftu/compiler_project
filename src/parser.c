@@ -24,7 +24,7 @@ int level = -1;
 extern int halt;
 
 // represents the stack pointer
-int sp = 4;
+int sp = 0;
 
 // the current max index in the symbol table
 int symbolTableIndex = 0;
@@ -82,40 +82,34 @@ void block()
 	// increment the level
 	level++;
 	int originalSymbolTableIndex = symbolTableIndex;
-	int space = 4;
-	sp = 4;
+	
+	int space = 0;
+	//sp = 1;
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
 	
 	// Handle the declarations:
 
 	// This if statement handles constants
-	if(*token == constsym) space += constDeclaration();
-
+	if(*token == constsym) constDeclaration();
 	// Variable Declarations
 	if(*token == varsym) space += varDeclaration();
-
 	// Procedure Declaration
 	while(*token == procsym) procDeclaration();
-
 	code[cx].m = codeIndex;
-
-	emit(INC, 0, 0, space);
+	emit(INC, 0, 0, space+4);
 	sp+=space;
-
 	// handles the actual code:
 	statement();
-
 	emit(RTN, 0, 0, 0);
-
+	
 	symbolTableIndex = originalSymbolTableIndex;
 	// decrement level
 	level--;
 }
 
-int constDeclaration()
+void constDeclaration()
 {
-	int space = 0;
 	do
 	{
 		getToken();
@@ -153,8 +147,6 @@ int constDeclaration()
 			error(AMBIGUOUSVARIABLE);
 		if (halt == TRUE) exit(0);
 
-		push(val); // pushes the constant on the stack
-		space++;
 		getToken();			
 	}
 	while(*token == commasym); // continue checking for consts if comma 
@@ -165,7 +157,7 @@ int constDeclaration()
 	if (halt == TRUE) exit(0);
 	getToken();
 
-	return space;
+
 }
 
 int varDeclaration()
@@ -184,7 +176,8 @@ int varDeclaration()
 		// create the newSymbol object
 		symbol newSymbol;
 		newSymbol.kind = varsym;
-		newSymbol.addr = sp;
+		newSymbol.addr = sp+4;
+		sp++;
 		newSymbol.level = level;
 
 		// grab the symbol unique name;
@@ -197,10 +190,6 @@ int varDeclaration()
 			error(AMBIGUOUSVARIABLE);
 		if (halt == TRUE) exit(0);
 
-		//emit(INC, 0, 0, 1); // increment the stack
-		//emit(LIT, 0, 0, 0); // Puts default value in register (use reg 0 for this)
-		//emit(STO, 0, level, sp); // store on stack and increment			
-		//sp++;
 		space++;
 		getToken();		
 	}
@@ -250,7 +239,6 @@ void procDeclaration()
 	if(*token != semicolonsym)
 		error(MISSINGSEMICOLONORBRACKET);
 
-	//emit(RTN, 0, 0, 0);
 
 	getToken();
 }
@@ -299,8 +287,9 @@ void callstatement()
 	if(halt == TRUE) exit(0);
 
 	// need to generate the code
+	
 	emit(CAL, 0, level - symbolTable[saveAddress].level, symbolTable[saveAddress].addr);
-
+	
 	getToken();
 }
 
@@ -338,7 +327,7 @@ void identstatement()
 
 	getToken(); // variable value
 	expression();
-	emit(LOD, 0, level, sp-1);
+	emit(LOD, 0, level - symbolTable[saveAddress].level, sp-1);
 	emit(STO, 0, level - symbolTable[saveAddress].level, symbolTable[saveAddress].addr);		
 }
 
@@ -418,12 +407,14 @@ void writestatement()
 	getToken();
 	int i = find(lexemeList[lexemeListIndex-1].name);
 	printf("LOOKING AT %s at %d\n", lexemeList[lexemeListIndex-1].name, i);
+	printf("name %s, level %d, addr %d, the curr level %d, sp %d\n",symbolTable[i].name,symbolTable[i].level,symbolTable[i].addr,level,sp);
 	if(i == -1)
 		error(UNDECLAREDIDENT);
 	if(halt == TRUE) exit(0);
 
 	// put stack addr in r0
 	// print r0
+	//emit(INC, 0, 0, 3);
 	emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
 	emit(SIO_O, 0, 0, 1);
 	getToken();
@@ -530,22 +521,24 @@ void factor()
 
 		if (symbolTable[i].kind != constsym && symbolTable[i].kind != varsym)
 			error(BADUSEOFPROCIDENT);
-
-		emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
-		emit(STO, 0, level, sp);
-		emit(INC, 0, 0, 1);
-		sp++;	
-
+		if (symbolTable[i].kind == constsym)
+			emit(LIT, 0, 0, symbolTable[i].val);
+			
+		else
+			emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
+		emit(STO, 0, level - symbolTable[i].level, sp-1);
+			
+		printf("name %s, level %d, addr %d, the curr level %d, sp %d\n",symbolTable[i].name,symbolTable[i].level,symbolTable[i].addr,level,sp);
 		getToken();
 
 	}
 	else if(*token == numbersym)
 	{
-		getToken(); // number retrieved
-		
-		emit(LIT, 0, 0, val); // number loaded into stack
-		emit(STO, 0, level, sp++);
+		getToken(); // number retrieved		
+		emit(LIT, 0, 0, val); // number loaded into stack		
+		emit(STO, 0, 0, sp++);
 		emit(INC, 0, 0, 1);
+		
 	}
 	else if(*token == lparentsym)
 	{
@@ -615,13 +608,6 @@ void doMath(int opcode)
 	emit(STO, btmTermReg, level, topTermStackLoc);
 }
 
-// pushs a value on top of the stack.  Useful for const declarations.
-void push(int value)
-{
-	emit(INC, 0, 0, 1); // increment the stack
-	emit(LIT, 0, 0, value); // Puts default value in register (use reg 0 for this)
-	emit(STO, 0, level, sp++); // store on stack and increment			
-}
 
 // gets an item from the stack and places it in another spot on the stack.  Leaves original intact.
 void move(int from, int to)
