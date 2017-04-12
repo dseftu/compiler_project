@@ -23,9 +23,8 @@ int level = -1;
 // a halt flag.  certain errors will raise this flag and allows the code to stop gracefully.
 extern int halt;
 
-// represents the stack pointer
+// represents the stack pointer (data allocation)
 int dx = 4;
-//int rp = 0;
 
 // the current max index in the symbol table
 int symbolTableIndex = 0;
@@ -82,29 +81,40 @@ void block()
 {	
 	// increment the level
 	level++;
+	
+	// save the symboltable index so that it can be reverted after the block is finished
 	int originalSymbolTableIndex = symbolTableIndex;
 
+	// set the base data allocation to 4 (for a new activation record)
 	dx = 4;
+	
+	// save the next code index so we can update this jump command later
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
 	
-	// Handle the declarations:
-
-	// This if statement handles constants
+	// Const Declarations
 	if(*token == constsym) constDeclaration();
+	
 	// Variable Declarations
 	if(*token == varsym) dx += varDeclaration();
+	
 	// Procedure Declaration
 	while(*token == procsym) procDeclaration();
+	
+	// Update that JMP command from earlier to point to the now next code index
 	code[cx].m = codeIndex;
 	emit(INC, 0, 0, dx);
 	
-	// handles the actual code:
+	// handles the actual code inside block:
 	statement();
+	
+	// A return statement to return to the calling function
 	emit(RTN, 0, 0, 0);	
 	
+	// restore the symbol table index (in effect deleting out of scope symbols)
 	symbolTableIndex = originalSymbolTableIndex;
-	// decrement level
+	
+	// decrement lexigraphical level
 	level--;
 }
 
@@ -156,8 +166,6 @@ void constDeclaration()
 		error(MISSINGSEMICOLONORBRACKET);
 	if (halt == TRUE) exit(0);
 	getToken();
-
-
 }
 
 int varDeclaration()
@@ -242,6 +250,7 @@ void procDeclaration()
 	getToken();
 }
 
+// handles the various types of statements
 void statement()
 {
 	// ident
