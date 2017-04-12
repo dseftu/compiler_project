@@ -33,6 +33,7 @@ void ifstatement();
 void whilestatement();
 void readstatement();
 void writestatement();
+void print();
 
 
 extern int halt;
