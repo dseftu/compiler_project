@@ -82,7 +82,7 @@ void block()
 	// increment the level
 	level++;
 	int originalSymbolTableIndex = symbolTableIndex;
-	int space = 4;
+	int space = 3;
 	sp = 1;
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
@@ -90,7 +90,7 @@ void block()
 	// Handle the declarations:
 
 	// This if statement handles constants
-	if(*token == constsym) space += constDeclaration();
+	if(*token == constsym) constDeclaration();
 	// Variable Declarations
 	if(*token == varsym) space += varDeclaration();
 	// Procedure Declaration
@@ -106,9 +106,8 @@ void block()
 	level--;
 }
 
-int constDeclaration()
+void constDeclaration()
 {
-	int space = 0;
 	do
 	{
 		getToken();
@@ -146,8 +145,6 @@ int constDeclaration()
 			error(AMBIGUOUSVARIABLE);
 		if (halt == TRUE) exit(0);
 
-		//push(val); // pushes the constant on the stack
-		space++;
 		getToken();			
 	}
 	while(*token == commasym); // continue checking for consts if comma 
@@ -158,7 +155,7 @@ int constDeclaration()
 	if (halt == TRUE) exit(0);
 	getToken();
 
-	return space;
+
 }
 
 int varDeclaration()
@@ -177,7 +174,8 @@ int varDeclaration()
 		// create the newSymbol object
 		symbol newSymbol;
 		newSymbol.kind = varsym;
-		newSymbol.addr = sp;
+		newSymbol.addr = sp+4;
+		sp++;
 		newSymbol.level = level;
 
 		// grab the symbol unique name;
@@ -243,7 +241,6 @@ void procDeclaration()
 	if(*token != semicolonsym)
 		error(MISSINGSEMICOLONORBRACKET);
 
-	//emit(RTN, 0, 0, 0);
 
 	getToken();
 }
