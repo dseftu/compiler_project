@@ -24,7 +24,8 @@ int level = -1;
 extern int halt;
 
 // represents the stack pointer
-int sp = 0;
+int dx = 4;
+//int rp = 0;
 
 // the current max index in the symbol table
 int symbolTableIndex = 0;
@@ -82,9 +83,8 @@ void block()
 	// increment the level
 	level++;
 	int originalSymbolTableIndex = symbolTableIndex;
-	
-	int space = 0;
-	//sp = 1;
+
+	dx = 4;
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
 	
@@ -93,15 +93,15 @@ void block()
 	// This if statement handles constants
 	if(*token == constsym) constDeclaration();
 	// Variable Declarations
-	if(*token == varsym) space += varDeclaration();
+	if(*token == varsym) dx += varDeclaration();
 	// Procedure Declaration
 	while(*token == procsym) procDeclaration();
 	code[cx].m = codeIndex;
-	emit(INC, 0, 0, space+4);
-	sp+=space;
+	emit(INC, 0, 0, dx);
+	
 	// handles the actual code:
 	statement();
-	emit(RTN, 0, 0, 0);
+	emit(RTN, 0, 0, 0);	
 	
 	symbolTableIndex = originalSymbolTableIndex;
 	// decrement level
@@ -140,7 +140,7 @@ void constDeclaration()
 		if (halt == TRUE) exit(0);
 
 		newSymbol.val = val; // grab the const value
-		newSymbol.addr = sp;
+		newSymbol.addr = 0;
 
 		// add symbol to symbol table
 		if (enter(newSymbol) == FALSE)
@@ -162,7 +162,6 @@ void constDeclaration()
 
 int varDeclaration()
 {		
-	int space = 0;
 	do
 	{
 		
@@ -176,8 +175,7 @@ int varDeclaration()
 		// create the newSymbol object
 		symbol newSymbol;
 		newSymbol.kind = varsym;
-		newSymbol.addr = sp+4;
-		sp++;
+		newSymbol.addr = ++dx;
 		newSymbol.level = level;
 
 		// grab the symbol unique name;
@@ -190,7 +188,6 @@ int varDeclaration()
 			error(AMBIGUOUSVARIABLE);
 		if (halt == TRUE) exit(0);
 
-		space++;
 		getToken();		
 	}
 	while(*token == commasym);
@@ -200,7 +197,7 @@ int varDeclaration()
 		error(MISSINGSEMICOLONORBRACKET);
 	getToken();
 
-	return space;
+	return 0;
 }
 
 void procDeclaration()
@@ -233,7 +230,9 @@ void procDeclaration()
 		error(MISSINGSEMICOLONORBRACKET);
 
 	getToken();
+	int origDx = dx;
 	block();
+	//dx = origDx;
 	
 	// ; expected
 	if(*token != semicolonsym)
@@ -315,7 +314,6 @@ void identstatement()
 	if(saveAddress == -1)
 		error(UNDECLAREDIDENT);
 	if(halt == TRUE) exit(0);
-
 	if (symbolTable[saveAddress].kind != varsym)
 		error(INVALIDASSIGNMENT);
 	if(halt == TRUE) exit(0);
@@ -327,7 +325,7 @@ void identstatement()
 
 	getToken(); // variable value
 	expression();
-	emit(LOD, 0, level - symbolTable[saveAddress].level, sp-1);
+	emit(LOD, 0, 0, dx);
 	emit(STO, 0, level - symbolTable[saveAddress].level, symbolTable[saveAddress].addr);		
 }
 
@@ -406,15 +404,12 @@ void writestatement()
 {
 	getToken();
 	int i = find(lexemeList[lexemeListIndex-1].name);
-	printf("LOOKING AT %s at %d\n", lexemeList[lexemeListIndex-1].name, i);
-	printf("name %s, level %d, addr %d, the curr level %d, sp %d\n",symbolTable[i].name,symbolTable[i].level,symbolTable[i].addr,level,sp);
 	if(i == -1)
 		error(UNDECLAREDIDENT);
 	if(halt == TRUE) exit(0);
 
 	// put stack addr in r0
 	// print r0
-	//emit(INC, 0, 0, 3);
 	emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
 	emit(SIO_O, 0, 0, 1);
 	getToken();
@@ -521,28 +516,32 @@ void factor()
 
 		if (symbolTable[i].kind != constsym && symbolTable[i].kind != varsym)
 			error(BADUSEOFPROCIDENT);
+
+		// put the value (either constant or var) into reg 0
 		if (symbolTable[i].kind == constsym)
 			emit(LIT, 0, 0, symbolTable[i].val);
 			
 		else
 			emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
-		emit(STO, 0, level - symbolTable[i].level, sp-1);
-			
-		printf("name %s, level %d, addr %d, the curr level %d, sp %d\n",symbolTable[i].name,symbolTable[i].level,symbolTable[i].addr,level,sp);
+
+		// put the contents of reg 0 onto the top of the stack	
+		emit(INC, 0, 0, 1);	
+		emit(STO, 0, 0, dx);
+		
+
 		getToken();
 
 	}
 	else if(*token == numbersym)
 	{
 		getToken(); // number retrieved		
-		emit(LIT, 0, 0, val); // number loaded into stack		
-		emit(STO, 0, 0, sp++);
-		emit(INC, 0, 0, 1);
-		
+		emit(LIT, 0, 0, val); // number loaded into register 0		
+		emit(INC, 0, 0, 1); // incremenets the  stack by 1
+		emit(STO, 0, 0, dx+1); // moves it onto the stack
+		dx++;
 	}
 	else if(*token == lparentsym)
 	{
-		int saveSP = sp-1;
 		getToken();
 		expression();
 
@@ -552,7 +551,7 @@ void factor()
 		if (halt == TRUE) exit(0);
 		getToken();
 
-		move(saveSP, sp-2);
+		move(dx-1, dx-2);
 	}
 
 	//can't begin with this symbol
@@ -594,18 +593,18 @@ void doMath(int opcode)
 	
 	// declaring this for clarity
 	int topTermReg = regIndex++;
-	int topTermStackLoc = sp-1;
+	int topTermStackLoc = dx;
 	int btmTermReg = regIndex;
-	int btmTermStackLoc = sp-2;
+	int btmTermStackLoc = dx-1;
 
 	if (regIndex>=MAX_REGISTER_SIZE)
 		error(OUTOFREGISTERSPACE);
 	if (halt == TRUE) exit(0);
 
-	emit(LOD, topTermReg, level, topTermStackLoc); // this is the most recent item
-	emit(LOD, btmTermReg, level, btmTermStackLoc); // this should be the item under that
+	emit(LOD, topTermReg, 0, topTermStackLoc); // this is the most recent item
+	emit(LOD, btmTermReg, 0, btmTermStackLoc); // this should be the item under that
 	emit(opcode, btmTermReg, btmTermReg, topTermReg);
-	emit(STO, btmTermReg, level, topTermStackLoc);
+	emit(STO, btmTermReg, 0, topTermStackLoc);
 }
 
 

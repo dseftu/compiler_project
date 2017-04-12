@@ -2,15 +2,8 @@ var f, n;
 procedure fact;
 var ans1;
 begin
-  write n;
-  write f;
-  write ans1;
   ans1:=n;
-  write n;
-  write ans1;
   n:= n-1;
-  write n;
-  write ans1;
   if n = 0 then f := 1;
   if n > 0 then call fact;
   f:=f*ans1;
