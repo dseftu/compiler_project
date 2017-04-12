@@ -11,6 +11,5 @@ begin
   call gak;
   y:= x + 5;
   write y;
-  write x;
-  
+  write x;  
 end.

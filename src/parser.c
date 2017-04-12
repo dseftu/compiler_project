@@ -54,6 +54,7 @@ void parse(lexeme* _lexemeList, int _maxIndex)
 
 	// get the maxindex
 	maxLexemeListIndex = _maxIndex;
+
 	program();
 }
 
@@ -116,6 +117,7 @@ void block()
 	
 	// decrement lexigraphical level
 	level--;
+
 }
 
 void constDeclaration()
@@ -528,14 +530,13 @@ void factor()
 
 		// put the value (either constant or var) into reg 0
 		if (symbolTable[i].kind == constsym)
-			emit(LIT, 0, 0, symbolTable[i].val);
-			
+			emit(LIT, 0, 0, symbolTable[i].val);			
 		else
 			emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
 
 		// put the contents of reg 0 onto the top of the stack	
 		emit(INC, 0, 0, 1);	
-		emit(STO, 0, 0, dx);
+		emit(STO, 0, 0, ++dx);
 		
 
 		getToken();
@@ -663,14 +664,12 @@ int exist(symbol s)
 int enter(symbol s)
 {
 	// if this symbol already exists, then don't add it
-	if (exist(s) == TRUE) 
-	{
-		
-		return FALSE;
-	}
+	if (exist(s) == TRUE) return FALSE;
+
 	if (symbolTableIndex >= MAX_SYMBOL_TABLE_SIZE)
 		error(SYMBOLTABLEFULL);
 	if (halt == TRUE) exit(0);
+
 	symbolTable[symbolTableIndex++] = s;
 	return TRUE;
 } 
@@ -681,9 +680,22 @@ int enter(symbol s)
 int find(char* name)
 {
 	for(int i = symbolTableIndex-1; i >= 0; i--)
-	{
-		if(strcmp(symbolTable[i].name, name) == 0)
-			return i;
-	}
+		if(strcmp(symbolTable[i].name, name) == 0) return i;			
+	
 	return -1;
+}
+
+// prints the symbol table.  Useful in debugging.  Prints backwards.
+void print()
+{
+	printf("Symbol table index = %d\n", symbolTableIndex);
+	for(int i = symbolTableIndex-1; i >= 0; i--)
+	{
+		int a = symbolTable[i].addr;
+		int k = symbolTable[i].kind;
+		char* n = symbolTable[i].name;
+		int l = symbolTable[i].level;
+		int v = symbolTable[i].val;
+		printf("Name = %s, addr = %d, kind = %d, level = %d, val = %d\n", n, a, k, l, v);
+	}
 }

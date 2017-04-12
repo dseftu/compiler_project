@@ -5,22 +5,26 @@ procedure a;
     int y,z,v;
     procedure c;
       int y,z;
-      begin
-        z:=1;
-        x:= y + z + w
+      begin /* proc c */
+        z:=1; /* z is local */
+        x:= y + z + w; /* x_a = y_c + z_c + w_base = (0 + 1 + 5) = 6 */
+        write x; /* should print 6 */
       end;
-    begin
-      y:= x + u + w;
+    begin /* proc b */
+      y:= x + u + w; /* y_b = x_a + u_a + w_base (0 + 7 + 5) = 12 */
+      write y; /* should write 12 */
       call c
     end;
-  begin
-    z:=2;
-    u:= z + w;
+  begin /* proc a */
+    z:=2; /* sets z_base to 2 */
+    u:= z + w; /* sets u_a to 2 + w_base (5) = 7 */    
+    write u; /* should write 7 */
     call b
   end;
-begin
+begin /* main */
   x:=1; y:=2; z:=3; v:=4; w:=5;
-  x:= v + w;
-  write z;
+  x:= v + w; /* x_0 should be 9 now */
+  write x; /* should write number 9 */
   call a;
+  write w;
 end.
