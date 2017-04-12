@@ -91,23 +91,16 @@ void block()
 
 	// This if statement handles constants
 	if(*token == constsym) space += constDeclaration();
-
 	// Variable Declarations
 	if(*token == varsym) space += varDeclaration();
-
 	// Procedure Declaration
 	while(*token == procsym) procDeclaration();
-
 	code[cx].m = codeIndex;
-
 	emit(INC, 0, 0, space);
 	sp+=space;
-
 	// handles the actual code:
 	statement();
-
 	emit(RTN, 0, 0, 0);
-
 	symbolTableIndex = originalSymbolTableIndex;
 	// decrement level
 	level--;
@@ -153,7 +146,7 @@ int constDeclaration()
 			error(AMBIGUOUSVARIABLE);
 		if (halt == TRUE) exit(0);
 
-		push(val); // pushes the constant on the stack
+		//push(val); // pushes the constant on the stack
 		space++;
 		getToken();			
 	}
@@ -530,8 +523,10 @@ void factor()
 
 		if (symbolTable[i].kind != constsym && symbolTable[i].kind != varsym)
 			error(BADUSEOFPROCIDENT);
-
-		emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
+		if (symbolTable[i].kind == constsym)
+			emit(LIT, 0, 0, symbolTable[i].val);
+		else
+			emit(LOD, 0, level - symbolTable[i].level, symbolTable[i].addr);
 		emit(STO, 0, level, sp);
 		emit(INC, 0, 0, 1);
 		sp++;	
