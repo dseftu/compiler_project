@@ -60,3 +60,19 @@ echo.
 echo. Expected output: 9, 7, 12, 6, 5
 echo.
 .\bin\compiler.exe .\GoodPL0Files\nested.pl0
+echo =============================================
+echo nested Program (test.pl0)
+echo.
+echo Tests functionality of if then else
+echo.
+echo.
+type .\GoodPL0Files\test.pl0
+echo.
+echo.
+echo .\bin\compiler.exe .\GoodPL0Files\test.pl0
+echo.
+echo Expected input: integer
+echo.
+echo "Expected output: if input > 4, then print input + 1.  Else print 4.
+echo.
+.\bin\compiler.exe .\GoodPL0Files\test.pl0
