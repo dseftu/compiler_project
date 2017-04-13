@@ -92,7 +92,6 @@ void program()
 // contains the initial declarations and starts the code statements
 void block()
 {	
-	test(blockFirstSym, UNKSYMBOL);  // TODO ERROR RECOVERY EXAMPLE
 
 	// increment the level
 	level++;
@@ -282,8 +281,6 @@ void procDeclaration()
 // handles the various types of statements
 void statement()
 {
-	//test(statementFirstSym, MISSINGSTATEMENT);
-
 	// ident
 	if(*token == identsym) identstatement();
 
@@ -304,8 +301,6 @@ void statement()
 
 	// Write
 	else if(*token == writesym) writestatement();
-
-	//test(statementFollowSym, BADSYMBOLAFTERSTMT);
 
 }
 
@@ -504,6 +499,7 @@ void condition()
 
 void expression()
 {
+	test(expressionFirstSym, INVALIDSTARTTOEXPRESSION);
 	if ( (*token == plussym) || (*token == minussym) )
 	{
 		int negate = FALSE;
@@ -539,14 +535,17 @@ void expression()
 
 void term()
 {
+	test(termFirstSym, INVALIDSTARTTOEXPRESSION);
 	int origRegIndex = regIndex;
 	int mulop;
 	factor();
+
 	while ( (*token == multsym) || (*token == slashsym) )
 	{
 		mulop = *token;
 		getToken();
 		factor();
+
 		if(mulop == multsym)
 		{
 			// multiply the top two items on the stack
@@ -559,10 +558,12 @@ void term()
 		}
 	}
 	regIndex = origRegIndex;
+
 }
 
 void factor()
 {
+	test(factFirstSym, INVALIDSTARTTOFACTOR);
 	// identifier
 	if(*token == identsym)
 	{
@@ -582,11 +583,9 @@ void factor()
 
 		// put the contents of reg 0 onto the top of the stack	
 		emit(INC, 0, 0, 1);	
-		emit(STO, 0, 0, ++dx);
-		
+		emit(STO, 0, 0, ++dx);		
 
 		getToken();
-
 	}
 	else if(*token == numbersym)
 	{
@@ -611,8 +610,8 @@ void factor()
 	}
 
 	//can't begin with this symbol
-	else
-		error(INVALIDSTARTTOFACTOR);
+	//else
+	//	error(INVALIDSTARTTOFACTOR);
 	//if (halt == TRUE) exit(0);
 }
 
@@ -768,8 +767,6 @@ void testSingle(int validsym, int errorcode)
 		while (*token != validsym) getToken();
 	}
 }
-
-
 
 int memberOf(int sym, int* set)
 {
