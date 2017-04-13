@@ -6,8 +6,9 @@
 #include "scanner.h"
 #include "errorCodes.h"
 
+int line = 1;
+
 // Scans an input file and returns the lexeme table
-// TODO:  Need to allow for this to optionally print code
 lexeme* scan(char* filename, int* _lexemeListEnd)
 {
     scanInput(filename);
@@ -46,8 +47,11 @@ int isInvisible(char c)
     if (c == ' ' ||
         c == '\r'||
         c == '\n'||
-        c == '\t')
-        return TRUE;
+        c == '\t'){
+            if (c == '\n') line++;
+            return TRUE;
+        } 
+        
     return FALSE;
 }
 
@@ -397,6 +401,7 @@ int addNewSymbol(int kind, char* name, int val)
     newRec.kind = kind;
     strcpy(newRec.name, name);
     newRec.val = val;
+    newRec.line = line;
 
     lexemeList[lexemeTableIndex++] = newRec;
 

@@ -2,7 +2,7 @@ int x,y,z,v,w;
 procedure a;
   int x,y,u,v;
   procedure b;
-    int y,z,v;
+    end y,z,v;
     procedure c;
       int y,z;
       begin /* proc c */

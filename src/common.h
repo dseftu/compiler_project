@@ -11,6 +11,7 @@
     #define MAX_CODE_LENGTH 500
     #define MAX_LEXI_LEVELS 3
     #define MAX_REGISTERS 16
+    #define MAX_SET_SIZE 30
 
     #define MAX_IDENTIFIER_LENGTH 11
     #define MAX_NUMBER_LENGTH 5
@@ -52,6 +53,7 @@
     #define writesym 31
     #define readsym 32
     #define elsesym 33
+    #define setendsymbol -1
 
     // Basic instructions
     #define LIT 1
@@ -104,6 +106,7 @@
         int kind; 		// const = 1, var = 2, proc = 3.
         char name[MAX_IDENTIFIER_LENGTH];	// name up to 11 chars
         int val; 		// number (ASCII value)
+        int line;        // current line of code
     } lexeme;
 
     // Handy dandy instruction struct
@@ -114,7 +117,6 @@
         int l; // L
         int m; // M
     } instruction;
-
 
 
 #endif // COMMON_H

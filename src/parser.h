@@ -40,3 +40,21 @@ extern int halt;
 
 extern void genCode(int op, int r, int l, int m);
 void buildTestObjectCode();
+void test(int* validset, int errorcode);
+int memberOf(int sym, int* set);
+
+
+int blockFirstSym[] = {constsym, varsym, procsym, identsym, ifsym, callsym, beginsym, whilesym, setendsymbol};
+
+int statementFirstSym[] = {identsym, callsym, beginsym, ifsym, whilesym, setendsymbol};
+int conditionFirstSym[] = {oddsym, plussym, minussym, lparentsym, identsym, numbersym, setendsymbol};
+int expressionFirstSym[] = {plussym, minussym, lparentsym, identsym, numbersym, setendsymbol};
+int termFirstSym[] = {identsym, numbersym, lparentsym, setendsymbol};
+int factFirstSym[] = {identsym, numbersym, lparentsym, setendsymbol};
+
+int blockFollowSym[] = {periodsym, semicolonsym, setendsymbol};
+int statementFollowSym[] = {periodsym, semicolonsym, endsym, setendsymbol};
+int conditionFollowSym[] = {thensym, dosym, setendsymbol};
+int expressionFollowSym[] = {periodsym, semicolonsym, rparentsym, endsym, thensym, dosym, setendsymbol};
+int termFollowSym[] = {periodsym, semicolonsym, rparentsym, plussym, minussym, endsym, thensym, dosym, setendsymbol};
+int factFollowSym[] = {periodsym, semicolonsym, rparentsym, plussym, minussym, multsym, slashsym, endsym, thensym, dosym, setendsymbol};

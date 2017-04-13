@@ -17,8 +17,6 @@ void error(int errorCode)
 
     halt = TRUE; // might make this optional to raise in a future version
 
-    printf("\nError (%d)\n", errorCode);
-
     switch (errorCode)
     {
         case BADCONSTASSIGNMENTSYMBOL:

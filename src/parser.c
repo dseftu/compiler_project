@@ -41,6 +41,7 @@ int regIndex = 0;
 // the current token
 int* token;
 int val;
+int currentLoc = 1;
 
 // entry point for the parser
 // grabs the reference to the lexeme list and starts program();
@@ -62,6 +63,7 @@ void parse(lexeme* _lexemeList, int _maxIndex)
 void program()
 {
 	getToken();	
+	
 	block();
 	if (*token != periodsym)
 		error(MISSINGPERIOD);
@@ -92,7 +94,7 @@ void block()
 	// save the next code index so we can update this jump command later
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
-	
+	test(blockFirstSym, UNKSYMBOL);  // TODO ERROR RECOVERY EXAMPLE
 	// Const Declarations
 	if(*token == constsym) constDeclaration();
 	
@@ -617,7 +619,6 @@ void doMath(int opcode)
 	emit(STO, btmTermReg, 0, topTermStackLoc);
 }
 
-
 // gets an item from the stack and places it in another spot on the stack.  Leaves original intact.
 void move(int from, int to)
 {
@@ -631,6 +632,7 @@ void getToken()
 	token = &lexemeList[lexemeListIndex].kind;
 	if(*token == numbersym)
 		val = lexemeList[lexemeListIndex].val;
+	currentLoc = lexemeList[lexemeListIndex].line;
 	lexemeListIndex++;
 }
 
@@ -698,4 +700,24 @@ void print()
 		int v = symbolTable[i].val;
 		printf("Name = %s, addr = %d, kind = %d, level = %d, val = %d\n", n, a, k, l, v);
 	}
+}
+
+void test(int* validset, int errorcode)
+{
+	if (!memberOf(*token, validset))
+	{
+		printf("\nError (%d) on Line %d\n", errorcode, currentLoc);
+		error(errorcode);
+		while (!(memberOf(*token, validset))) getToken();
+	}
+}
+
+int memberOf(int sym, int* set)
+{
+	
+	int i = 0;
+	while (set[i] != setendsymbol)
+		if (set[i++] == sym) return TRUE;
+	
+	return FALSE;
 }
