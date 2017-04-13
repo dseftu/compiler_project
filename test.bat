@@ -16,7 +16,7 @@ echo.
 echo.
 echo. Expected output: 59, 3, 4, 63
 echo.
-.\bin\compiler.exe .\GoodPL0Files\sample.pl0
+.\bin\compiler.exe -a -v -l .\GoodPL0Files\sample.pl0
 echo =============================================
 echo test2 Program (test2.pl0)
 echo.

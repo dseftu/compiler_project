@@ -6,9 +6,7 @@ procedure a;
     procedure c;
       int y,z;
       begin /* proc c */
-        write z;
-        z:=1 /* z is local */
-        write z;
+        z:=1; /* z is local */
         x:= y + z + w; /* x_a = y_c + z_c + w_base = (0 + 1 + 5) = 6 */
         write x; /* should print 6 */
       end;

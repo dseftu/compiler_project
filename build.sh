@@ -1,0 +1,1 @@
+gcc -o ./compiler ./src/compiler.c ./src/errorHandler.c ./src/icg.c ./src/P-machine.c ./src/parser.c ./src/scanner.c

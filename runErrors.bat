@@ -28,10 +28,6 @@ echo.
 echo *******************************************
 echo Missing operator:
 echo.
-.\bin\compiler.exe -l -a -v .\ErrorPL0Files\error6.pl0
-echo *******************************************
-echo Not implementing CALL:
-echo.
 .\bin\compiler.exe -l -a -v .\ErrorPL0Files\error7.pl0
 echo *******************************************
 echo Missing end statement:
@@ -39,10 +35,6 @@ echo.
 .\bin\compiler.exe -l -a -v .\ErrorPL0Files\error8.pl0
 echo *******************************************
 echo Missing then after if:
-echo.
-.\bin\compiler.exe -l -a -v .\ErrorPL0Files\error9.pl0
-echo *******************************************
-echo Else not implemented
 echo.
 .\bin\compiler.exe -l -a -v .\ErrorPL0Files\error10.pl0
 echo *******************************************
@@ -65,7 +57,3 @@ echo *******************************************
 echo Invalid start of factor
 echo.
 .\bin\compiler.exe -l -a -v .\ErrorPL0Files\error15.pl0
-echo *******************************************
-echo Symbol table full
-echo.
-.\bin\compiler.exe -l -a -v .\ErrorPL0Files\error16.pl0
