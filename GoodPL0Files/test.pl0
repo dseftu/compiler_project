@@ -1,8 +1,10 @@
-const g = 5;
-var x, y;
+var x, w;
 begin
-	y := 3;
-	x := (y + 5)+(3 - 3);
-	write x;
-	/* bla bla bla*/
+	x:= 4;
+	read w;
+	if w > x then
+		w:= w + 1
+	else
+		w:= x;
+	write w;
 end.
