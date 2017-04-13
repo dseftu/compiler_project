@@ -141,7 +141,7 @@ void constDeclaration()
 		getToken();
 
 		// constant must be followed by ident
-		test({identsym}, MISSINGIDENTIFIER);
+		//test({identsym}, MISSINGIDENTIFIER);
 		if(*token != identsym)
 			error(MISSINGIDENTIFIER);
 		if (halt == TRUE) exit(0);
