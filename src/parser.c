@@ -73,8 +73,9 @@ void program()
 
 	// There can be no error recovery here since this is the end of the program
 	// If there happened to be valid code past this, it would not get parsed
-	if (*token != periodsym)
-		error(MISSINGPERIOD);
+	//if (*token != periodsym)
+	//	error(MISSINGPERIOD);
+	testSingle(periodsym, MISSINGPERIOD);
 	//if (halt == TRUE) exit(0);
 
 	// If we made it here, that means the parser worked
@@ -141,10 +142,10 @@ void constDeclaration()
 		getToken();
 
 		// constant must be followed by ident
-		//test({identsym}, MISSINGIDENTIFIER);
-		if(*token != identsym)
-			error(MISSINGIDENTIFIER);
-		if (halt == TRUE) exit(0);
+		testSingle(identsym, MISSINGIDENTIFIER);
+		//if(*token != identsym)
+		//	error(MISSINGIDENTIFIER);
+		//if (halt == TRUE) exit(0);
 
 		// create the newSymbol object
 		symbol newSymbol;
@@ -156,15 +157,18 @@ void constDeclaration()
 
 		// const ident must be followed by =
 		getToken();
-		if(*token != eqlsym)
-			error(MISSINGCONSTASSIGNMENTSYMBOL);			
-		if (halt == TRUE) exit(0);
+		//if(*token != eqlsym)
+		//	error(MISSINGCONSTASSIGNMENTSYMBOL);			
+		//if (halt == TRUE) exit(0);
+		testSingle(eqlsym, MISSINGCONSTASSIGNMENTSYMBOL);
+
 		getToken();
 
 		// const must be numeric
-		if(*token != numbersym)
-			error(CONSTASSIGNMENTMISSING);
-		if (halt == TRUE) exit(0);
+		//if(*token != numbersym)
+		//	error(CONSTASSIGNMENTMISSING);
+		//if (halt == TRUE) exit(0);
+		testSingle(numbersym, CONSTASSIGNMENTMISSING);
 
 		newSymbol.val = val; // grab the const value
 		newSymbol.addr = 0;
@@ -172,7 +176,7 @@ void constDeclaration()
 		// add symbol to symbol table
 		if (enter(newSymbol) == FALSE)
 			error(AMBIGUOUSVARIABLE);
-		if (halt == TRUE) exit(0);
+		//if (halt == TRUE) exit(0);
 
 		getToken();			
 	}
@@ -195,9 +199,10 @@ int varDeclaration()
 		getToken(); // this is the identifier
 
 		// Varaible must be followed by an identifier
-		if(*token != identsym)
-			error(MISSINGIDENTIFIER);
-		if (halt == TRUE) exit(0);
+		//if(*token != identsym)
+		//	error(MISSINGIDENTIFIER);
+		//if (halt == TRUE) exit(0);
+		testSingle(identsym, MISSINGIDENTIFIER);
 
 		// create the newSymbol object
 		symbol newSymbol;
@@ -213,15 +218,16 @@ int varDeclaration()
 		// add symbol to symbol table
 		if (enter(newSymbol) == FALSE)
 			error(AMBIGUOUSVARIABLE);
-		if (halt == TRUE) exit(0);
+		//if (halt == TRUE) exit(0);
 
-		getToken();		
+		getToken();
 	}
 	while(*token == commasym);
 
 	// ; expected
-	if(*token != semicolonsym)
-		error(MISSINGSEMICOLONORBRACKET);
+	//if(*token != semicolonsym)
+	//	error(MISSINGSEMICOLONORBRACKET);
+	testSingle(semicolonsym, MISSINGSEMICOLONORBRACKET);
 	getToken();
 
 	return 0;
@@ -232,8 +238,9 @@ void procDeclaration()
 {	
 
 	getToken();
-	if(*token != identsym)
-		error(MISSINGIDENTIFIER);
+	//if(*token != identsym)
+	//	error(MISSINGIDENTIFIER);
+	testSingle(identsym, MISSINGIDENTIFIER);
 
 	// create the newSymbol object
 	symbol newSymbol;
@@ -249,13 +256,14 @@ void procDeclaration()
 	// add symbol to symbol table
 	if (enter(newSymbol) == FALSE)
 		error(AMBIGUOUSVARIABLE);
-	if (halt == TRUE) exit(0);
+	//if (halt == TRUE) exit(0);
 
 	getToken();
 
 	// ; expected
-	if(*token != semicolonsym)
-		error(MISSINGSEMICOLONORBRACKET);
+	//if(*token != semicolonsym)
+	//	error(MISSINGSEMICOLONORBRACKET);
+	testSingle(semicolonsym, MISSINGSEMICOLONORBRACKET);
 
 	getToken();
 	int origDx = dx;
@@ -274,6 +282,8 @@ void procDeclaration()
 // handles the various types of statements
 void statement()
 {
+	//test(statementFirstSym, MISSINGSTATEMENT);
+
 	// ident
 	if(*token == identsym) identstatement();
 
@@ -295,15 +305,18 @@ void statement()
 	// Write
 	else if(*token == writesym) writestatement();
 
+	//test(statementFollowSym, BADSYMBOLAFTERSTMT);
+
 }
 
 // member of statement()
 void callstatement()
 {
 	getToken();
-	if(*token != identsym)
-		error(MISSINGIDENTAFTERCALL);
-	if (halt == TRUE) exit(0);
+	//if(*token != identsym)
+	//	error(MISSINGIDENTAFTERCALL);
+	//if (halt == TRUE) exit(0);
+	testSingle(identsym, MISSINGIDENTIFIER);
 
 	// make sure this exists in the symbol table
 	int saveAddress = find(lexemeList[lexemeListIndex-1].name);
@@ -334,9 +347,10 @@ void beginstatement()
 		statement();
 	}
 	// statement expected
-	if(*token != endsym)
-		error(MISSINGSTATEMENT);
-	if (halt == TRUE) exit(0);
+	testSingle(endsym, MISSINGSTATEMENT);
+	//if(*token != endsym)
+	//	error(MISSINGSTATEMENT);
+	//f (halt == TRUE) exit(0);
 	getToken();
 }
 
@@ -352,9 +366,10 @@ void identstatement()
 	if(halt == TRUE) exit(0);
 	
 	getToken();
-	if(*token != becomessym)
-		error(MISSINGOPERATOR);
-	if (halt == TRUE) exit(0);
+	//if(*token != becomessym)
+	//	error(MISSINGOPERATOR);
+	//if (halt == TRUE) exit(0);
+	testSingle(becomessym, MISSINGOPERATOR);
 
 	getToken(); // variable value
 	expression();
@@ -370,7 +385,7 @@ void ifstatement()
 	// then expected after condition
 	if(*token != thensym)
 		error(MISSINGTHENAFTERIF);
-	if (halt == TRUE) exit(0);
+	//if (halt == TRUE) exit(0);
 	getToken();
 	int saveIndex = codeIndex;
 	emit(JPC, regIndex, 0, 0);
@@ -400,7 +415,7 @@ void whilestatement()
 	// do expected
 	if(*token != dosym)
 		error(MISSINGDO);
-	if (halt == TRUE) exit(0);
+	//if (halt == TRUE) exit(0);
 	
 	getToken();
 	statement();
@@ -408,7 +423,7 @@ void whilestatement()
 	// ; missing
 	if(*token !=  semicolonsym)
 		error(MISSINGSEMICOLON);
-	if (halt == TRUE) exit(0);
+	//if (halt == TRUE) exit(0);
 
 	emit(JMP, 0, 0, index1);
 	code[index2].m = codeIndex;
@@ -426,7 +441,7 @@ void readstatement()
 
 	if (symbolTable[i].kind != varsym)
 		error(INVALIDASSIGNMENT);
-	if (halt == TRUE) exit(0);
+	//if (halt == TRUE) exit(0);
 
 	// read(R(0))
 	// store r(0) at addr
@@ -454,6 +469,8 @@ void writestatement()
 
 void condition()
 {
+	test(conditionFirstSym, MISSINGRELATIONALOPERATOR);
+
 	int op;
 	if(*token == oddsym)
 	{
@@ -464,9 +481,10 @@ void condition()
 	else
 	{
 		expression();
-		if (*token < eqlsym || *token > geqsym)
-			error(MISSINGRELATIONALOPERATOR);
-		if (halt == TRUE) exit(0);
+		//if (*token < eqlsym || *token > geqsym)
+		//	error(MISSINGRELATIONALOPERATOR);
+		test(conditionalsSym, MISSINGRELATIONALOPERATOR);
+		//if (halt == TRUE) exit(0);
 
 		int opcode;		
 		if (*token == eqlsym) opcode = EQL;
@@ -480,6 +498,8 @@ void condition()
 		expression();
 		doMath(opcode);
 	}
+
+	test(conditionFollowSym, MISSINGRELATIONALOPERATOR);
 }
 
 void expression()
@@ -584,7 +604,7 @@ void factor()
 		// ) missing
 		if(*token != rparentsym)
 			error(MISSINGRIGHTPAREN);
-		if (halt == TRUE) exit(0);
+		//if (halt == TRUE) exit(0);
 		getToken();
 
 		move(dx-1, dx-2);
@@ -593,7 +613,7 @@ void factor()
 	//can't begin with this symbol
 	else
 		error(INVALIDSTARTTOFACTOR);
-	if (halt == TRUE) exit(0);
+	//if (halt == TRUE) exit(0);
 }
 
 // Check if token is a constant, variable, or procedure
@@ -635,7 +655,7 @@ void doMath(int opcode)
 
 	if (regIndex>=MAX_REGISTER_SIZE)
 		error(OUTOFREGISTERSPACE);
-	if (halt == TRUE) exit(0);
+	//if (halt == TRUE) exit(0);
 
 	emit(LOD, topTermReg, 0, topTermStackLoc); // this is the most recent item
 	emit(LOD, btmTermReg, 0, btmTermStackLoc); // this should be the item under that
@@ -653,6 +673,8 @@ void move(int from, int to)
 // retrieves the next token
 void getToken()
 {
+	if (lexemeListIndex > maxLexemeListIndex) exit(0);
+
 	token = &lexemeList[lexemeListIndex].kind;
 	if(*token == numbersym)
 		val = lexemeList[lexemeListIndex].val;
@@ -728,17 +750,29 @@ void print()
 
 void test(int* validset, int errorcode)
 {
+	
 	if (!memberOf(*token, validset))
 	{
-		printf("\nError (%d) on Line %d\n", errorcode, currentLoc);
+		printf("\nError (%d)\n", errorcode);
 		error(errorcode);
 		while (!(memberOf(*token, validset))) getToken();
 	}
 }
 
+void testSingle(int validsym, int errorcode)
+{
+	if (*token != validsym)
+	{
+		printf("\nError (%d)\n", errorcode);
+		error(errorcode);
+		while (*token != validsym) getToken();
+	}
+}
+
+
+
 int memberOf(int sym, int* set)
 {
-	
 	int i = 0;
 	while (set[i] != setendsymbol)
 		if (set[i++] == sym) return TRUE;
