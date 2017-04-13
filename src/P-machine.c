@@ -196,6 +196,7 @@ char* opcodeToString(int op)
             return "geq";
         default:
             error(BADOPCODE);
+            halt = TRUE;
             return "";
     }
     return "";
@@ -280,8 +281,8 @@ void ALU()
             R[IR.r] = R[IR.l] >= R[IR.m];
             break;
         default:
-            printf("OPCODE FOUND %d\n", IR.op);
             error(BADOPCODE);
+            halt = TRUE;
             return;
     }
 }

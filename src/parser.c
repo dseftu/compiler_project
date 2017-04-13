@@ -40,7 +40,11 @@ int regIndex = 0;
 
 // the current token
 int* token;
+
+// the value of the current token, if the current token had a value
 int val;
+
+// the current line of code that the token corresponds to
 int currentLoc = 1;
 
 // entry point for the parser
@@ -59,18 +63,22 @@ void parse(lexeme* _lexemeList, int _maxIndex)
 	program();
 }
 
+
 // the beginning of the actual parsing.
 void program()
 {
 	getToken();	
 	
 	block();
+
+	// There can be no error recovery here since this is the end of the program
+	// If there happened to be valid code past this, it would not get parsed
 	if (*token != periodsym)
 		error(MISSINGPERIOD);
-	if (halt == TRUE) exit(0);
+	//if (halt == TRUE) exit(0);
 
 	// If we made it here, that means the parser worked
-	printf("No errors, program is syntactically correct.\n\n");
+	if (halt != TRUE) printf("No errors, program is syntactically correct.\n\n");
 
 	// End of the program
 	emit(SIO_E, 0, 0, 3); 
@@ -80,8 +88,11 @@ void program()
 		genCode(code[i].op, code[i].r, code[i].l, code[i].m);
 }
 
+// contains the initial declarations and starts the code statements
 void block()
 {	
+	test(blockFirstSym, UNKSYMBOL);  // TODO ERROR RECOVERY EXAMPLE
+
 	// increment the level
 	level++;
 	
@@ -94,7 +105,7 @@ void block()
 	// save the next code index so we can update this jump command later
 	int cx = codeIndex;
 	emit(JMP, 0, 0, 0);	
-	test(blockFirstSym, UNKSYMBOL);  // TODO ERROR RECOVERY EXAMPLE
+
 	// Const Declarations
 	if(*token == constsym) constDeclaration();
 	
@@ -122,6 +133,7 @@ void block()
 
 }
 
+// member of block
 void constDeclaration()
 {
 	do
@@ -129,6 +141,7 @@ void constDeclaration()
 		getToken();
 
 		// constant must be followed by ident
+		test({identsym}, MISSINGIDENTIFIER);
 		if(*token != identsym)
 			error(MISSINGIDENTIFIER);
 		if (halt == TRUE) exit(0);
@@ -166,12 +179,14 @@ void constDeclaration()
 	while(*token == commasym); // continue checking for consts if comma 
 
 	// ; expected
-	if(*token != semicolonsym)
-		error(MISSINGSEMICOLONORBRACKET);
-	if (halt == TRUE) exit(0);
+	//if(*token != semicolonsym)
+	//	error(MISSINGSEMICOLONORBRACKET);
+	//if (halt == TRUE) exit(0);
+	test(statementFollowSym, MISSINGSEMICOLONORBRACKET);
 	getToken();
 }
 
+// member of block
 int varDeclaration()
 {		
 	do
@@ -212,6 +227,7 @@ int varDeclaration()
 	return 0;
 }
 
+//member of block
 void procDeclaration()
 {	
 
@@ -247,8 +263,9 @@ void procDeclaration()
 	//dx = origDx;
 	
 	// ; expected
-	if(*token != semicolonsym)
-		error(MISSINGSEMICOLONORBRACKET);
+	//if(*token != semicolonsym)
+	//	error(MISSINGSEMICOLONORBRACKET);
+	test(blockFollowSym, MISSINGSEMICOLONORBRACKET);
 
 
 	getToken();
@@ -280,6 +297,7 @@ void statement()
 
 }
 
+// member of statement()
 void callstatement()
 {
 	getToken();
@@ -305,6 +323,7 @@ void callstatement()
 	getToken();
 }
 
+// member of statement()
 void beginstatement()
 {
 	getToken();
@@ -321,6 +340,7 @@ void beginstatement()
 	getToken();
 }
 
+// member of statement()
 void identstatement()
 {
 	int saveAddress = find(lexemeList[lexemeListIndex-1].name);
@@ -342,6 +362,7 @@ void identstatement()
 	emit(STO, 0, level - symbolTable[saveAddress].level, symbolTable[saveAddress].addr);		
 }
 
+// member of statement()
 void ifstatement()
 {
 	getToken();
@@ -367,6 +388,7 @@ void ifstatement()
 	}		
 }
 
+// member of statement()
 void whilestatement()
 {
 	int index1 = codeIndex; // saves address to jump to check condition for while
@@ -393,6 +415,7 @@ void whilestatement()
 	
 }
 
+// member of statement()
 void readstatement()
 {
 	getToken();	
@@ -413,6 +436,7 @@ void readstatement()
 	getToken();	
 }
 
+// member of statement()
 void writestatement()
 {
 	getToken();

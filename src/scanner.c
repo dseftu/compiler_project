@@ -381,7 +381,6 @@ void scanInput(char *filename)
         {
             // unrecognized character.
             error(UNKSYMBOL);
-            halt = TRUE;
             break;
         }
     }

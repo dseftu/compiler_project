@@ -2,11 +2,13 @@ int x,y,z,v,w;
 procedure a;
   int x,y,u,v;
   procedure b;
-    end y,z,v;
+    int y,z,v;
     procedure c;
       int y,z;
       begin /* proc c */
-        z:=1; /* z is local */
+        write z;
+        z:=1 /* z is local */
+        write z;
         x:= y + z + w; /* x_a = y_c + z_c + w_base = (0 + 1 + 5) = 6 */
         write x; /* should print 6 */
       end;
