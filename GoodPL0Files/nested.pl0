@@ -1,10 +1,10 @@
-int x,y,z,v,w;
+var x,y,z,v,w;
 procedure a;
-  int x,y,u,v;
+  var x,y,u,v;
   procedure b;
-    int y,z,v;
+    var y,z,v;
     procedure c;
-      int y,z;
+      var y,z;
       begin /* proc c */
         z:=1; /* z is local */
         x:= y + z + w; /* x_a = y_c + z_c + w_base = (0 + 1 + 5) = 6 */

@@ -63,7 +63,8 @@ int isReservedWord(char* word)
     int currentSym = -1;
 
     if (strcmp(word, "const") == 0) currentSym = constsym;
-    else if (strcmp(word, "var") == 0 || strcmp(word, "int") == 0 ) currentSym = varsym;
+    //else if (strcmp(word, "var") == 0 || strcmp(word, "int") == 0 ) currentSym = varsym;
+    else if (strcmp(word, "var") == 0) currentSym = varsym; // using var only.  line above uses either
     else if (strcmp(word, "procedure") == 0) currentSym = procsym;
     else if (strcmp(word, "call") == 0) currentSym = callsym;
     else if (strcmp(word, "begin") == 0) currentSym = beginsym;
