@@ -35,6 +35,7 @@ int isSpecialSymbols(char c)
         c == '$' ||
         c == '%' ||
         c == ':' ||
+        c == '!' ||
         c == ';')
         return TRUE;
 
@@ -114,7 +115,7 @@ void handleSpecialSymbolPair(char* word, FILE*fid)
 
     // is this one of our valid pairs?
     if (strcmp(word, "<=") == 0) currentSym = leqsym;
-    else if (strcmp(word, "<>") == 0) currentSym = neqsym;
+    else if (strcmp(word, "<>") == 0 | strcmp(word, "!=") == 0) currentSym = neqsym;
     else if (strcmp(word, ">=") == 0) currentSym = geqsym;
     else if (strcmp(word, ":=") == 0) currentSym = becomessym;
 
@@ -355,7 +356,8 @@ void scanInput(char *filename)
             else if ((char)c == '/' ||
                      (char)c == '<' ||
                      (char)c == '>' ||
-                     (char)c == ':')
+                     (char)c == ':' ||
+                     (char)c == '!')
             {
                 // so we have two consecutive special symbols.
                 // do we match one of our paired special symbols?

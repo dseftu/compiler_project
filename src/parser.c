@@ -73,10 +73,7 @@ void program()
 
 	// There can be no error recovery here since this is the end of the program
 	// If there happened to be valid code past this, it would not get parsed
-	//if (*token != periodsym)
-	//	error(MISSINGPERIOD);
 	testSingle(periodsym, MISSINGPERIOD);
-	//if (halt == TRUE) exit(0);
 
 	// If we made it here, that means the parser worked
 	if (halt != TRUE) printf("No errors, program is syntactically correct.\n\n");
@@ -142,9 +139,6 @@ void constDeclaration()
 
 		// constant must be followed by ident
 		testSingle(identsym, MISSINGIDENTIFIER);
-		//if(*token != identsym)
-		//	error(MISSINGIDENTIFIER);
-		//if (halt == TRUE) exit(0);
 
 		// create the newSymbol object
 		symbol newSymbol;
@@ -156,17 +150,12 @@ void constDeclaration()
 
 		// const ident must be followed by =
 		getToken();
-		//if(*token != eqlsym)
-		//	error(MISSINGCONSTASSIGNMENTSYMBOL);			
-		//if (halt == TRUE) exit(0);
+
 		testSingle(eqlsym, MISSINGCONSTASSIGNMENTSYMBOL);
 
 		getToken();
 
 		// const must be numeric
-		//if(*token != numbersym)
-		//	error(CONSTASSIGNMENTMISSING);
-		//if (halt == TRUE) exit(0);
 		testSingle(numbersym, CONSTASSIGNMENTMISSING);
 
 		newSymbol.val = val; // grab the const value
@@ -175,16 +164,11 @@ void constDeclaration()
 		// add symbol to symbol table
 		if (enter(newSymbol) == FALSE)
 			error(AMBIGUOUSVARIABLE);
-		//if (halt == TRUE) exit(0);
 
 		getToken();			
 	}
 	while(*token == commasym); // continue checking for consts if comma 
 
-	// ; expected
-	//if(*token != semicolonsym)
-	//	error(MISSINGSEMICOLONORBRACKET);
-	//if (halt == TRUE) exit(0);
 	test(statementFollowSym, MISSINGSEMICOLONORBRACKET);
 	getToken();
 }
@@ -198,9 +182,6 @@ int varDeclaration()
 		getToken(); // this is the identifier
 
 		// Varaible must be followed by an identifier
-		//if(*token != identsym)
-		//	error(MISSINGIDENTIFIER);
-		//if (halt == TRUE) exit(0);
 		testSingle(identsym, MISSINGIDENTIFIER);
 
 		// create the newSymbol object
@@ -217,15 +198,12 @@ int varDeclaration()
 		// add symbol to symbol table
 		if (enter(newSymbol) == FALSE)
 			error(AMBIGUOUSVARIABLE);
-		//if (halt == TRUE) exit(0);
 
 		getToken();
 	}
 	while(*token == commasym);
 
 	// ; expected
-	//if(*token != semicolonsym)
-	//	error(MISSINGSEMICOLONORBRACKET);
 	testSingle(semicolonsym, MISSINGSEMICOLONORBRACKET);
 	getToken();
 
@@ -255,23 +233,16 @@ void procDeclaration()
 	// add symbol to symbol table
 	if (enter(newSymbol) == FALSE)
 		error(AMBIGUOUSVARIABLE);
-	//if (halt == TRUE) exit(0);
 
 	getToken();
 
 	// ; expected
-	//if(*token != semicolonsym)
-	//	error(MISSINGSEMICOLONORBRACKET);
 	testSingle(semicolonsym, MISSINGSEMICOLONORBRACKET);
 
 	getToken();
-	int origDx = dx;
 	block();
-	//dx = origDx;
 	
 	// ; expected
-	//if(*token != semicolonsym)
-	//	error(MISSINGSEMICOLONORBRACKET);
 	test(blockFollowSym, MISSINGSEMICOLONORBRACKET);
 
 
@@ -308,24 +279,26 @@ void statement()
 void callstatement()
 {
 	getToken();
-	//if(*token != identsym)
-	//	error(MISSINGIDENTAFTERCALL);
-	//if (halt == TRUE) exit(0);
+
 	testSingle(identsym, MISSINGIDENTIFIER);
 
 	// make sure this exists in the symbol table
 	int saveAddress = find(lexemeList[lexemeListIndex-1].name);
 	if(saveAddress == -1)
+	{
 		error(UNDECLAREDIDENT);
-	if(halt == TRUE) exit(0);
+		exit(0);
+	}
+		
 
 	// make sure this is an actual proc
 	if (symbolTable[saveAddress].kind != procsym)
+	{
 		error(INVALIDCALL);
-	if(halt == TRUE) exit(0);
-
-	// need to generate the code
-	
+		exit(0);
+	}
+		
+	// need to generate the code	
 	emit(CAL, 0, level - symbolTable[saveAddress].level, symbolTable[saveAddress].addr);
 	
 	getToken();
@@ -343,9 +316,7 @@ void beginstatement()
 	}
 	// statement expected
 	testSingle(endsym, MISSINGSTATEMENT);
-	//if(*token != endsym)
-	//	error(MISSINGSTATEMENT);
-	//f (halt == TRUE) exit(0);
+	
 	getToken();
 }
 
@@ -354,16 +325,19 @@ void identstatement()
 {
 	int saveAddress = find(lexemeList[lexemeListIndex-1].name);
 	if(saveAddress == -1)
+	{
 		error(UNDECLAREDIDENT);
-	if(halt == TRUE) exit(0);
+		exit(0);
+	}
+		
 	if (symbolTable[saveAddress].kind != varsym)
+	{
 		error(INVALIDASSIGNMENT);
-	if(halt == TRUE) exit(0);
-	
+		exit(0);
+	}
+
 	getToken();
-	//if(*token != becomessym)
-	//	error(MISSINGOPERATOR);
-	//if (halt == TRUE) exit(0);
+
 	testSingle(becomessym, MISSINGOPERATOR);
 
 	getToken(); // variable value
@@ -380,7 +354,7 @@ void ifstatement()
 	// then expected after condition
 	if(*token != thensym)
 		error(MISSINGTHENAFTERIF);
-	//if (halt == TRUE) exit(0);
+
 	getToken();
 	int saveIndex = codeIndex;
 	emit(JPC, regIndex, 0, 0);
@@ -410,15 +384,9 @@ void whilestatement()
 	// do expected
 	if(*token != dosym)
 		error(MISSINGDO);
-	//if (halt == TRUE) exit(0);
 	
 	getToken();
 	statement();
-			
-	// ; missing
-	if(*token !=  semicolonsym)
-		error(MISSINGSEMICOLON);
-	//if (halt == TRUE) exit(0);
 
 	emit(JMP, 0, 0, index1);
 	code[index2].m = codeIndex;
@@ -430,13 +398,13 @@ void readstatement()
 {
 	getToken();	
 	int i = find(lexemeList[lexemeListIndex-1].name);
-	if(i == -1)
+	if(i == -1){
 		error(UNDECLAREDIDENT);
-	if(halt == TRUE) exit(0);
+		exit(0);
+	}
 
 	if (symbolTable[i].kind != varsym)
 		error(INVALIDASSIGNMENT);
-	//if (halt == TRUE) exit(0);
 
 	// read(R(0))
 	// store r(0) at addr
@@ -451,9 +419,11 @@ void writestatement()
 {
 	getToken();
 	int i = find(lexemeList[lexemeListIndex-1].name);
-	if(i == -1)
+	if(i == -1){
 		error(UNDECLAREDIDENT);
-	if(halt == TRUE) exit(0);
+		exit(0);
+	}
+	
 
 	// put stack addr in r0
 	// print r0
@@ -476,10 +446,8 @@ void condition()
 	else
 	{
 		expression();
-		//if (*token < eqlsym || *token > geqsym)
-		//	error(MISSINGRELATIONALOPERATOR);
+
 		test(conditionalsSym, MISSINGRELATIONALOPERATOR);
-		//if (halt == TRUE) exit(0);
 
 		int opcode;		
 		if (*token == eqlsym) opcode = EQL;
@@ -568,9 +536,10 @@ void factor()
 	if(*token == identsym)
 	{
 		int i = find(lexemeList[lexemeListIndex-1].name);
-		if(i == -1)
+		if(i == -1){
 			error(UNDECLAREDIDENT);
-		if(halt == TRUE) exit(0);
+			exit(0);
+		}
 
 		if (symbolTable[i].kind != constsym && symbolTable[i].kind != varsym)
 			error(BADUSEOFPROCIDENT);
@@ -603,16 +572,11 @@ void factor()
 		// ) missing
 		if(*token != rparentsym)
 			error(MISSINGRIGHTPAREN);
-		//if (halt == TRUE) exit(0);
 		getToken();
 
 		move(dx-1, dx-2);
 	}
 
-	//can't begin with this symbol
-	//else
-	//	error(INVALIDSTARTTOFACTOR);
-	//if (halt == TRUE) exit(0);
 }
 
 // Check if token is a constant, variable, or procedure
@@ -654,7 +618,6 @@ void doMath(int opcode)
 
 	if (regIndex>=MAX_REGISTER_SIZE)
 		error(OUTOFREGISTERSPACE);
-	//if (halt == TRUE) exit(0);
 
 	emit(LOD, topTermReg, 0, topTermStackLoc); // this is the most recent item
 	emit(LOD, btmTermReg, 0, btmTermStackLoc); // this should be the item under that
@@ -714,8 +677,10 @@ int enter(symbol s)
 	if (exist(s) == TRUE) return FALSE;
 
 	if (symbolTableIndex >= MAX_SYMBOL_TABLE_SIZE)
+	{
 		error(SYMBOLTABLEFULL);
-	if (halt == TRUE) exit(0);
+		exit(0);
+	}
 
 	symbolTable[symbolTableIndex++] = s;
 	return TRUE;
