@@ -6,7 +6,7 @@ nested Program (sample.pl0)
 
 Tests a basic program.
 
-const g = 3;
+const foo = 3, bar = 2;
 var x, y, z;
 begin
 	y := 3;
@@ -19,6 +19,7 @@ begin
 	write x;
 end.
 
+
 .\bin\compiler.exe .\GoodPL0Files\sample.pl0
 
 
@@ -26,7 +27,7 @@ end.
 
 
 Lexeme List:
-28 2 g 9 3 3 18 29 2 x 17 2 y 17 2 z 18 21 2 y 20 3 3 18 2 x 20 2 y 4 3 56 18 31 2 x 18 2 z 20 3 4 18 2 x 20 2 y 4 3 60 18 31 2 y 18 31 2 z 18 31 2 x 18 22 19 
+28 2 foo 9 3 3 17 2 bar 9 3 2 18 29 2 x 17 2 y 17 2 z 18 21 2 y 20 3 3 18 2 x 20 2 y 4 3 56 18 31 2 x 18 2 z 20 3 4 18 2 x 20 2 y 4 3 60 18 31 2 y 18 31 2 z 18 31 2 x 18 22 19 
 
 No errors, program is syntactically correct.
 
@@ -198,13 +199,13 @@ nested Program (nested.pl0)
 Tests functionality of nested procedures.
 
 
-int x,y,z,v,w;
+var x,y,z,v,w;
 procedure a;
-  int x,y,u,v;
+  var x,y,u,v;
   procedure b;
-    int y,z,v;
+    var y,z,v;
     procedure c;
-      int y,z;
+      var y,z;
       begin /* proc c */
         z:=1; /* z is local */
         x:= y + z + w; /* x_a = y_c + z_c + w_base = (0 + 1 + 5) = 6 */
@@ -266,7 +267,129 @@ Expected input: integer
 
 "Expected output: if input > 4, then print input + 1.  Else print 4.
 
+Enter a value after the prompt.
 No errors, program is syntactically correct.
 
 
 4
+=============================================
+Multiply, Divide, and GCD Program (wirth1.pl0)
+
+Last minute test case added from wirth book
+
+
+const m = 7, n = 85;
+var x,y,z,q,r;
+procedure multiply;
+  var a,b;
+  begin a := x; b := y; z := 0;
+    while b > 0 do
+      begin
+        if odd b then z := z + a;
+	a := 2*a; b := b/2;
+      end
+  end;
+
+procedure divide;
+  var w;
+  begin r := x; q := 0; w := y;
+    while w <= r do w := w*2;
+    while w > y do
+      begin q := 2*q; w := w/2;
+        if w <= r then
+  	    begin r := r-w; q := q + 1
+	    end
+      end
+  end;
+
+procedure gcd;
+  var f,g;
+  begin f := x; g := y;
+    while f <> g do
+      begin if f < g then g := g - f;
+            if g < f then f := f - g;
+        end;
+    z := f
+  end;
+
+begin
+	x := m; y := n; call multiply;
+    write z;
+	x := 25; y := 3; call divide;
+    write q;
+	x := 84; y := 36; call gcd;
+    write z;
+end. 
+
+.\bin\compiler.exe .\GoodPL0Files\wirth1.pl0
+
+
+ Expected output: 595, 8, 12
+
+No errors, program is syntactically correct.
+
+595
+8
+12
+=============================================
+Multiply, Divide, and GCD Program WITH ERRORS (wirth2_error.pl0)
+
+Last minute test case added from wirth book
+
+
+const m = 7, n = 85
+var x,y,z,q,r;
+procedure multiply;
+  var a,b
+  begin a := u; b := y; z := 0
+    while b > 0 do
+      begin
+        if odd b do z := z + a;
+      
+	a := a; b := b/2;
+      end
+  end;
+
+procedure divide
+  var w;
+  const two = 2, three := 3;
+  begin r = x; q := 0; w := y;
+
+    while w <= r do w := two*w;
+    while x > y
+      begin q := (2*q; w := w/2);
+        if w <= r then
+  	  begin r := r-w q := q + 1
+	  end
+      end
+  end;
+
+procedure gcd;
+  var f,g;
+  begin f := x; g := y
+    while f <> g do
+      begin if f < g then g := g - f;
+            if g < f then f := f - g;
+    z := f
+  end;
+
+begin
+	x := m; y := n; call multiply;
+	x := 25; y := 3; call divide;
+	x := 84; y := 36; call gcd;
+	call x; x := gcd; gcd = x
+
+end . 
+
+.\bin\compiler.exe .\GoodPL0Files\wirth2_error.pl0
+
+
+ Expected output: Multiple errors
+
+
+Error (17)
+Semicolon or } expected.
+
+Error (17)
+Semicolon or } expected.
+Undeclared identifier.

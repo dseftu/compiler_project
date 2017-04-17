@@ -75,4 +75,35 @@ echo Expected input: integer
 echo.
 echo "Expected output: if input > 4, then print input + 1.  Else print 4.
 echo.
+echo Enter a value after the prompt.
 .\bin\compiler.exe .\GoodPL0Files\test.pl0
+echo =============================================
+echo Multiply, Divide, and GCD Program (wirth1.pl0)
+echo.
+echo Last minute test case added from wirth book
+echo.
+echo.
+type .\GoodPL0Files\wirth1.pl0
+echo.
+echo.
+echo .\bin\compiler.exe .\GoodPL0Files\wirth1.pl0
+echo.
+echo.
+echo. Expected output: 595, 8, 12
+echo.
+.\bin\compiler.exe .\GoodPL0Files\wirth1.pl0
+echo =============================================
+echo Multiply, Divide, and GCD Program WITH ERRORS (wirth2_error.pl0)
+echo.
+echo Last minute test case added from wirth book
+echo.
+echo.
+type .\GoodPL0Files\wirth2_error.pl0
+echo.
+echo.
+echo .\bin\compiler.exe .\GoodPL0Files\wirth2_error.pl0
+echo.
+echo.
+echo. Expected output: Multiple errors
+echo.
+.\bin\compiler.exe .\GoodPL0Files\wirth2_error.pl0
