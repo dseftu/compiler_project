@@ -13,8 +13,8 @@ procedure multiply;
 procedure divide;
   var w;
   begin r := x; q := 0; w := y;
-    while w <= r do w := 2*w;
-    while x > y do
+    while w <= r do w := w*2;
+    while w > y do
       begin q := 2*q; w := w/2;
         if w <= r then
   	    begin r := r-w; q := q + 1
@@ -33,7 +33,10 @@ procedure gcd;
   end;
 
 begin
-	/*x := m; y := n; call multiply;*/
+	x := m; y := n; call multiply;
+    write z;
 	x := 25; y := 3; call divide;
-	/*x := 84; y := 36; call gcd;*/
+    write q;
+	x := 84; y := 36; call gcd;
+    write z;
 end. 
